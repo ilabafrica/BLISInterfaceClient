@@ -22,6 +22,7 @@ public class settings {
     public static String FILE_EXTENSION;
     public static String FILE_SEPERATOR;
     public static char SEPERATOR_CHAR;
+    public static String FILE_NAME;
     
     public static void setChar(String Seperator)
     {

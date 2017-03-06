@@ -14,6 +14,7 @@ import  RS232.*;
 import TCPIP.*;
 import MSACCESS.*;
 import TEXT.BDFACSCalibur;
+import TEXT.Humastar100;
 import java.awt.AWTException;
 import java.awt.Image;
 import java.awt.MenuItem;
@@ -52,7 +53,7 @@ public class MainForm extends javax.swing.JFrame {
     
     private String blis_URL;
     private String blis_username;
-    private String blis_password;    
+    private String blis_password;
     private String equipment;
     MindrayBS200E obj = null;
     MICROS60 abx = null;
@@ -61,6 +62,7 @@ public class MainForm extends javax.swing.JFrame {
     RS232.BT3000PlusChameleon btRSobj = null; 
     SYSMEXXS500i sysobj = null; 
     BDFACSCalibur bdobj = null;
+    Humastar100 hmobj = null;
     SelectraJunior selobj = null;
     ABXPentra80 pentra80Obj = null;
     CobasAmpliPrep cobasObj = null;
@@ -539,10 +541,15 @@ public class MainForm extends javax.swing.JFrame {
             case "TEXT":
                 switch(jlblEquipment.getText().toUpperCase())
                 {
-                    case "BD FACSCALIBUR":                        
+                    case "BD FACSCALIBUR":
                         bdobj.Stop();
                         break;
-                    
+                }
+                switch(jlblEquipment.getText().toUpperCase())
+                {
+                    case "Humastar 100":
+                        bdobj.Stop();
+                        break;
                 }
                  break;
         }
@@ -635,7 +642,11 @@ public class MainForm extends javax.swing.JFrame {
                     case "BD FACSCALIBUR":
                     bdobj = new BDFACSCalibur();
                     bdobj.start();
-                    break;                   
+                    break;
+                    case "HUMASTAR 100":
+                    hmobj = new Humastar100();
+                    hmobj.start();
+                    break;
                 }
                  break;
         }
@@ -643,7 +654,7 @@ public class MainForm extends javax.swing.JFrame {
     private void getConfigurations()
     {
         String value = configuration.configuration.GetParameterValue(configuration.configuration.FEED_SOURCE);
-        jlblSourceType.setText(value);         
+        jlblSourceType.setText(value);
         switch(value)
         {
             case "RS232": 
@@ -701,7 +712,7 @@ public class MainForm extends javax.swing.JFrame {
                 RS232Settings.COMPORT = data[1];
                  break;
              case "BAUD_RATE":
-                 RS232Settings.BAUD = Integer.parseInt(data[1]);                 
+                 RS232Settings.BAUD = Integer.parseInt(data[1]);
                  break;
              case "PARITY":
                  if(data[1].equalsIgnoreCase("none"))
@@ -789,6 +800,9 @@ public class MainForm extends javax.swing.JFrame {
              case "SUB_DIRECTORY_FORMAT":
                  TEXT.settings.SUB_DIRECTORY_FORMAT = data[1];
                  break;
+             case "FILE_NAME":
+                 TEXT.settings.FILE_NAME = data[1];
+                 break;    
              case "FILE_NAME_FORMAT":
                  TEXT.settings.FILE_NAME_FORMAT = data[1];
                  break;
@@ -802,15 +816,10 @@ public class MainForm extends javax.swing.JFrame {
              case "AUTO_SPECIMEN_ID":
                  settings.AUTO_SPECIMEN_ID = data[1].equalsIgnoreCase("yes");
                  break;
-                         
-                 
-                
-                      
          }
        }
-        
     }
-    
+
     private void setManualActivity()
     {
         toggleManualActivity(false);
@@ -829,7 +838,7 @@ public class MainForm extends javax.swing.JFrame {
             case "TCP/IP":
                 switch(jlblEquipment.getText())
                 {
-                    case "BT3000 Plus-Chameleon":       
+                    case "BT3000 Plus-Chameleon":
                         toggleManualActivity(true);
                         jbtnSend.setEnabled(false);
                         break;
