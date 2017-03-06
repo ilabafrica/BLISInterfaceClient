@@ -33,6 +33,8 @@ import java.util.logging.Logger;
 import log.DisplayMessageType;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Scanner;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import system.SampleDataJSON;
 
 
@@ -70,10 +72,10 @@ public class Humastar100 extends Thread {
                     {             
                         try {
                             getBLISTests("",false);
-                            manageResults();
+                                manageResults();
                             Thread.sleep(system.settings.POOL_INTERVAL * 1000);
                         } catch (InterruptedException ex) {
-                            Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
+                            Logger.getLogger(Humastar100.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
                     log.AddToDisplay.Display("Humastar 100 Handler Stopped",log.DisplayMessageType.TITLE);
@@ -116,35 +118,40 @@ public class Humastar100 extends Thread {
         private void getBLISTests(String aux_id, boolean flag){
         try {
             String data = BLIS.blis.getTestData(getSpecimenFilter(2), "",aux_id,system.settings.POOL_DAY);
-            List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
-            SampleList = SampleDataJSON.normaliseResults(SampleList);
-            if(SampleList.size() > 0)
-            {            
-//                for (int i=0;i<SampleList.size();i++) 
-//                {                 
-//                    if(!testExist(SampleList.get(i).aux_id))
+            JSONParser parser = new JSONParser();
+            JSONObject jsonresponse = (JSONObject) parser.parse(data);
+            if(jsonresponse.isEmpty()){
+                log.AddToDisplay.Display("No data found",DisplayMessageType.INFORMATION);
+                return;
+            }
+            if(jsonresponse.containsKey("error")){
+                log.AddToDisplay.Display(jsonresponse.get("error").toString(),DisplayMessageType.WARNING);
+                return;
+            }
+            int x = jsonresponse.size();
+//            for (int i=0; i<jsonresponse.size(); i++) 
+//            {                 
+//                if(!testExist(SampleList.get(i).aux_id))
+//                {
+//                   // log.AddToDisplay.Display(SampleList.size()+" result(s) test found in BLIS!",DisplayMessageType.INFORMATION);
+//                    //log.AddToDisplay.Display("Sending test to Analyzer",DisplayMessageType.INFORMATION);
+//                    log.AddToDisplay.Display("Sending test with CODE: "+SampleList.get(i).aux_id + " to Analyzer BT3000 Plus",DisplayMessageType.INFORMATION);
+//                    if(sendTesttoAnalyzer(SampleList.get(i)))
 //                    {
-//                       // log.AddToDisplay.Display(SampleList.size()+" result(s) test found in BLIS!",DisplayMessageType.INFORMATION);
-//                        //log.AddToDisplay.Display("Sending test to Analyzer",DisplayMessageType.INFORMATION);
-//                        log.AddToDisplay.Display("Sending test with CODE: "+SampleList.get(i).aux_id + " to Analyzer BT3000 Plus",DisplayMessageType.INFORMATION);
-//                        if(sendTesttoAnalyzer(SampleList.get(i)))
-//                        {
-//                            addToQueue(SampleList.get(i).aux_id);
-//                            log.AddToDisplay.Display("Test sent sucessfully",DisplayMessageType.INFORMATION);
-//                        }
-//                    }
-//                    else
-//                    {
-//                        if(flag)                         
-//                            log.AddToDisplay.Display("Sample with code: "+aux_id +" already exist in Analyzer",DisplayMessageType.INFORMATION);
+//                        addToQueue(SampleList.get(i).aux_id);
+//                        log.AddToDisplay.Display("Test sent sucessfully",DisplayMessageType.INFORMATION);
 //                    }
 //                }
-
-            }
-            else{
-                if(flag)                         
-                   log.AddToDisplay.Display("Sample with code: "+aux_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
-            }
+//                else
+//                {
+//                    if(flag)                         
+//                        log.AddToDisplay.Display("Sample with code: "+aux_id +" already exist in Analyzer",DisplayMessageType.INFORMATION);
+//                }
+//            }
+//            else{
+//                if(flag)                         
+//                   log.AddToDisplay.Display("Sample with code: "+aux_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
+//            }
         }catch(Exception ex){
                 log.logger.PrintStackTrace(ex);
         }
