@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,10 +34,9 @@ import java.util.logging.Logger;
 import log.DisplayMessageType;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Scanner;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import system.SampleDataJSON;
-
 
 /**
  *
@@ -119,29 +119,21 @@ public class Humastar100 extends Thread {
         try {
             String data = BLIS.blis.getTestData(getSpecimenFilter(2), "",aux_id,system.settings.POOL_DAY);
             JSONParser parser = new JSONParser();
-            JSONObject jsonresponse = (JSONObject) parser.parse(data);
-            if(jsonresponse.isEmpty()){
+            JSONArray sampleList = (JSONArray) parser.parse(data);
+            
+            if(sampleList.isEmpty()){
                 log.AddToDisplay.Display("No data found",DisplayMessageType.INFORMATION);
                 return;
             }
-            if(jsonresponse.containsKey("error")){
-                log.AddToDisplay.Display(jsonresponse.get("error").toString(),DisplayMessageType.WARNING);
-                return;
-            }
-            int x = jsonresponse.size();
-//            for (int i=0; i<jsonresponse.size(); i++) 
-//            {                 
-//                if(!testExist(SampleList.get(i).aux_id))
-//                {
-//                   // log.AddToDisplay.Display(SampleList.size()+" result(s) test found in BLIS!",DisplayMessageType.INFORMATION);
-//                    //log.AddToDisplay.Display("Sending test to Analyzer",DisplayMessageType.INFORMATION);
-//                    log.AddToDisplay.Display("Sending test with CODE: "+SampleList.get(i).aux_id + " to Analyzer BT3000 Plus",DisplayMessageType.INFORMATION);
-//                    if(sendTesttoAnalyzer(SampleList.get(i)))
+            
+            log.AddToDisplay.Display(sampleList.size()+" result(s) test found in BLIS!",DisplayMessageType.INFORMATION);
+            generateWorklist(sampleList);
+//                    if(sendTesttoAnalyzer(sampleList.get(i)))
 //                    {
-//                        addToQueue(SampleList.get(i).aux_id);
-//                        log.AddToDisplay.Display("Test sent sucessfully",DisplayMessageType.INFORMATION);
+//                        addToQueue(sampleList.get(i));
+                        log.AddToDisplay.Display("Test sent sucessfully",DisplayMessageType.INFORMATION);
 //                    }
-//                }
+//                } 
 //                else
 //                {
 //                    if(flag)                         
@@ -155,127 +147,138 @@ public class Humastar100 extends Thread {
         }catch(Exception ex){
                 log.logger.PrintStackTrace(ex);
         }
-     }
+    }
+        
+    private static String generateWorklist(JSONArray sampleList)
+    {
+        List<String> wrklst = new ArrayList<>();
+        String hheader = "H|\\^&|||HSX00^V1.0|||||Host||P|1|20140117";
+        wrklst.add(hheader);
+        //Loops through test list
+        for (int i=0; i < sampleList.size(); i++) 
+        {
+            JSONObject sample = (JSONObject)sampleList.get(i);
+            JSONObject visit =  (JSONObject)sample.get("visit");
+            JSONObject patient =  (JSONObject)visit.get("patient");
+            
+            
+            JSONObject ttype =  (JSONObject)sample.get("test_type");
+            JSONArray jarr =  (JSONArray)ttype.get("measures");
+            
+            String pdetails =  "P|1||2-FIDO|"+patient.get("name") +"|FIDO||20050000|MALE|||||||||||||||||||||||||";
+            wrklst.add(pdetails);
+            String mheader = "C|1|||";
+            wrklst.add(mheader);
+
+            for (int j=0; j < jarr.size(); j++) 
+            {
+                //Loop through measures
+                JSONObject measure = (JSONObject)jarr.get(j);
+                String mdetails = "O|1|2458||"+ measure.get("name") +"|False||||||||||Serum|||||||||||||||";
+                wrklst.add(mdetails);
+            }
+            log.AddToDisplay.Display("Sending test with CODE: "+sample.get("id") + " to Analyzer Humastar 100",DisplayMessageType.INFORMATION);
+        }
+        String hfooter =  "L||N";
+        wrklst.add(hfooter);
+        
+        //Write data to file
+        writeToFile(wrklst);
+        
+        return "";
+    }
+        
+        public static boolean sendTesttoAnalyzer(String data)
+        {
+            return true;
+        }
+        
+        public static void writeToFile(List content)
+        {
+            String path = settings.BASE_DIRECTORY 
+                             + System.getProperty("file.separator")
+                             + getFileName();
+            try {
+                PrintWriter hworklist = new PrintWriter(path);
+                
+                // iterate over the array
+                for( Object str : content ) {
+                    hworklist.println(str);
+                }
+                hworklist.close();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(Humastar100.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return;
+        }
 	
-	public static void HandleDataInput(String data)
-	{
-		String[] DataParts = data.split(String.valueOf(settings.SEPERATOR_CHAR));
-		if( DataParts.length > 1)
-		{
-                    //String Type  = DataParts[1].trim();
-                    int mID=0;
-                    float value = 0;
-                    boolean flag = false;
-                    //17 is where the actual test values starts
-                    //7=> SampleID, 8=>Case Number
-                    String specimen_id = DataParts[8];
-                    if(!specimen_id.equals("."))
-                    {
-                                    for(int i=17;i<DataParts.length;i++)
-                                    {
-                                            mID = getMeasureID(Integer.toString(i+1));
-                                            if(mID > 0)
-                                            {
-                                                    try
-                                                    {
-                                                            value = Float.parseFloat(DataParts[i].trim());
-                                                    }catch(NumberFormatException e){
-                                                            try{
-                                                            value = 0;
-                                                            }catch(NumberFormatException ex){}
-
-                                                    }
-                                                    if(SaveResults(specimen_id, mID,value))
-                                                    {
-                                                            flag = true;
-                                                    }
-                                            }
-
-                                    }
+	public static void HandleDataInput(String data){
+            String[] DataParts = data.trim().split(String.valueOf("\\"+settings.SEPERATOR_CHAR));
+            //If first part is R means its a results string
+            if (DataParts[0].equals("R")){
+                if( DataParts.length > 1){
+                    String methodName = DataParts[2];
+                    String results = DataParts[8];
+                    if(true){
+                        log.AddToDisplay.Display
+                            ("Results with Code: "+ methodName +" and result "+results+" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
                     }
-                                    if(flag)
-                                    {
-                                             log.AddToDisplay.Display("Results with Code: "+specimen_id +" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
-                                    }
-                                    else
-                                    {
-                                             log.AddToDisplay.Display("Test with Code: "+specimen_id +" not Found on BLIS",DisplayMessageType.WARNING);
-                                    }
-
-            }        
-		   
+                    else{
+                        log.AddToDisplay.Display
+                            ("Test with Code: "+methodName +" not Found on BLIS ",DisplayMessageType.WARNING);
+                    }
+                }
+            }	   
 	}
 	
 	private void manageResults() 
 	{
-		if(shouldRead())
-		{
-			 String path = settings.BASE_DIRECTORY 
-				 + System.getProperty("file.separator")
-				 + getFileName();         
+            if(shouldRead())
+            {
+                String path = settings.BASE_DIRECTORY 
+                        + System.getProperty("file.separator")
+                        + settings.OUTPUT_DIRECTORY 
+                        + System.getProperty("file.separator")
+                        + getFileName();         
 
-			File in_file = new File(path);
-			String line="";
-			try {
-				in=new BufferedReader(new InputStreamReader(new FileInputStream(in_file)));
-				 long dCount =0;
-				while((line = in.readLine()) != null)
-				{
-					if(dCount < ReadLine)
-					{
-						dCount++;
-						continue;
-					}         
-					if(stopped)
-						break;
-					
-					ReadLine++;
-					dCount++;
-					if(!line.isEmpty())
-					{
-						 HandleDataInput(line);
-					}
-					
-				}
-			} catch (FileNotFoundException ex) {
-				Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
-			} catch (IOException ex) {
-				Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
-			}    
-			 
-		   //ReadTime =FileTime.fromMillis(DateT system.utilities.getSystemDate(""));
-			//TODO
-			
-		}
-	   
+                File in_file = new File(path);
+                String line="";
+                try {
+                    in=new BufferedReader(new InputStreamReader(new FileInputStream(in_file)));
+                    while((line = in.readLine()) != null){
+                        HandleDataInput(line);
+                    }
+               } catch (FileNotFoundException ex) {
+                       Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
+               } catch (IOException ex) {
+                       Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
+               }    		
+            }
 	}
 	
-	private boolean shouldRead()
-	{
-		boolean flag = false;
-		 String path = settings.BASE_DIRECTORY 
-				 + System.getProperty("file.separator")
-				 + getFileName();         
+	private boolean shouldRead(){
+            boolean flag = false;
+//             String path = settings.BASE_DIRECTORY 
+//                             + System.getProperty("file.separator")
+//                             + getFileName();         
+//
+//            Path file = Paths.get(path);
+//             try {           
+//                BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
+//                if(null == ReadTime || (attr.lastModifiedTime().compareTo(ReadTime) > 0))
+//                {
+//                        flag = true;
+//
+//                }            
+//                else
+//                {
+//                        flag = false;
+//                }
+//             } catch (IOException ex) {
+//                     Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
+//             }
 
-		Path file = Paths.get(path);
-		 try {           
-			 BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
-			 if(null == ReadTime || (attr.lastModifiedTime().compareTo(ReadTime) > 0))
-			 {
-				 flag = true;
-				 
-			 }            
-			 else
-			 {
-				 flag = false;
-			 }
-				 
-			 
-		 } catch (IOException ex) {
-			 Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
-		 }
-		
-		return flag;
+            return true;
 	}   
    
 	
@@ -292,61 +295,58 @@ public class Humastar100 extends Thread {
 		}*/
 	}
 	
-	private void setTestIDs()
-	 {
-		 String equipmentid = getSpecimenFilter(3);
-		 String blismeasureid = getSpecimenFilter(4);
-		
-		 String[] equipmentids = equipmentid.split(",");
-		 String[] blismeasureids = blismeasureid.split(",");
-		 for(int i=0;i<equipmentids.length;i++)
-		 {
-			 testIDs.add(equipmentids[i]+";"+blismeasureids[i]);             
-		 }
-		
-	 }
-	
-	private static String getSpecimenFilter(int whichdata)
-	{
-		String data = "";
-		xmlparser p = new xmlparser("configs/BDFACSCalibur/bdfacscalibur.xml");
-		try {
-			data = p.getMicros60Filter(whichdata);           
-		} catch (Exception ex) {
-			Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
-		}        
-		return data;        
-	}
-	
-	 private static int getMeasureID(String equipmentID)
-	 {
-		 int measureid = 0;
-		 for(int i=0;i<testIDs.size();i++)
-		 {
-			 if(testIDs.get(i).split(";")[0].equalsIgnoreCase(equipmentID))
-			 {
-				 measureid = Integer.parseInt(testIDs.get(i).split(";")[1]);
-				 break;
-			 }
-		 }
-		 
-		 return measureid;
-	 }
-	 
-	private static boolean SaveResults(String barcode,int MeasureID, float value)
-	 {
-		 
-		 
-		  boolean flag = false;       
-		  if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,0)))
-		   {
-			  flag = true;
-			}
-						  
-		 return flag;
-		 
-	 }    
+    private void setTestIDs()
+     {
+             String equipmentid = getSpecimenFilter(3);
+             String blismeasureid = getSpecimenFilter(4);
 
-	
+             String[] equipmentids = equipmentid.split(",");
+             String[] blismeasureids = blismeasureid.split(",");
+             for(int i=0;i<equipmentids.length;i++)
+             {
+                     testIDs.add(equipmentids[i]+";"+blismeasureids[i]);             
+             }
 
+     }
+
+    private static String getSpecimenFilter(int whichdata)
+    {
+            String data = "";
+            xmlparser p = new xmlparser("configs/BDFACSCalibur/bdfacscalibur.xml");
+            try {
+                    data = p.getMicros60Filter(whichdata);           
+            } catch (Exception ex) {
+                    Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
+            }        
+            return data;        
+    }
+
+     private static int getMeasureID(String equipmentID)
+     {
+             int measureid = 0;
+             for(int i=0;i<testIDs.size();i++)
+             {
+                     if(testIDs.get(i).split(";")[0].equalsIgnoreCase(equipmentID))
+                     {
+                             measureid = Integer.parseInt(testIDs.get(i).split(";")[1]);
+                             break;
+                     }
+             }
+
+             return measureid;
+     }
+
+    private static boolean SaveResults(String barcode,int MeasureID, float value)
+    {
+
+
+              boolean flag = false;       
+              if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,0)))
+               {
+                      flag = true;
+                    }
+
+             return flag;
+
+    }
 }

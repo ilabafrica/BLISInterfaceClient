@@ -29,7 +29,6 @@ import java.net.URLEncoder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import log.logger;
 import system.*;
 
 /**
@@ -795,6 +794,10 @@ public class MainForm extends javax.swing.JFrame {
              case "BASE_DIRECTORY":
                  TEXT.settings.BASE_DIRECTORY = data[1];
                  break;
+             case "INPUT_DIRECTORY":
+                  TEXT.settings.INPUT_DIRECTORY = data[1];
+             case "OUTPUT_DIRECTORY":
+                  TEXT.settings.OUTPUT_DIRECTORY = data[1];
              case "USE_SUB_DIRECTORIES":
                  TEXT.settings.USE_SUB_DIRECTORIES = data[1].equalsIgnoreCase("yes");
              case "SUB_DIRECTORY_FORMAT":

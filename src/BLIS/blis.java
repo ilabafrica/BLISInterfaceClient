@@ -13,7 +13,6 @@ package BLIS;
 import hl7.Mindray.Message;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -67,9 +66,9 @@ public class blis {
             // Request parameters and other properties.
             List<NameValuePair> params = new ArrayList<NameValuePair>(2);
             params.add(new BasicNameValuePair("key", "123456"));
-            params.add(new BasicNameValuePair("datefrom", "2017-10-02 19:16:15"));
-            params.add(new BasicNameValuePair("dateto", "2017-10-02 19:16:15"));
-            params.add(new BasicNameValuePair("testtype", "GXM"));
+            params.add(new BasicNameValuePair("datefrom", "2017-02-09 00:00:00"));
+            params.add(new BasicNameValuePair("dateto", "2017-02-10 23:59:59"));
+            params.add(new BasicNameValuePair("testtype", "LFTS"));
             httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
             
             //Execute and get the response.
@@ -77,10 +76,13 @@ public class blis {
          
             //Check for errors 
             if (response.getStatusLine().getStatusCode() == 404) {
-                log.AddToDisplay.Display("File not found, check URL...", DisplayMessageType.WARNING);
+                log.AddToDisplay.Display("Error 404, check URL...", DisplayMessageType.WARNING);
             }
             if (response.getStatusLine().getStatusCode() == 500) {
-                log.AddToDisplay.Display("Server has encountered problems", DisplayMessageType.WARNING);
+                log.AddToDisplay.Display("Server has encountered problems ", DisplayMessageType.WARNING);
+            }
+            if (response.getStatusLine().getStatusCode() == 403) {
+                log.AddToDisplay.Display("Authentication failed ...", DisplayMessageType.WARNING);
             }
             HttpEntity entity = response.getEntity();
             
