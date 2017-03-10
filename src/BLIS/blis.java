@@ -61,14 +61,20 @@ public class blis {
     {
         try {
             HttpClient httpclient = HttpClients.createDefault();
-            HttpPost httppost = new HttpPost("http://blis.dev/api/searchtests");
+            String blisurl = settings.BLIS_URL + "/api/searchtests";
+            HttpPost httppost = new HttpPost(blisurl);
+            
+            String key = "123456";
+            String dateFrom = "2017-02-09 00:00:00"; //Today morning
+            String dateTo = "2017-02-09 23:59:00"; // Now
+            String testtype = "LFTS"; //Get from params
             
             // Request parameters and other properties.
             List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-            params.add(new BasicNameValuePair("key", "123456"));
-            params.add(new BasicNameValuePair("datefrom", "2017-02-09 00:00:00"));
-            params.add(new BasicNameValuePair("dateto", "2017-02-10 23:59:59"));
-            params.add(new BasicNameValuePair("testtype", "LFTS"));
+            params.add(new BasicNameValuePair("key", key));
+            params.add(new BasicNameValuePair("datefrom", dateFrom));
+            params.add(new BasicNameValuePair("dateto", dateTo));
+            params.add(new BasicNameValuePair("testtype", testtype));
             httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
             
             //Execute and get the response.
@@ -84,9 +90,6 @@ public class blis {
             if (response.getStatusLine().getStatusCode() == 403) {
                 log.AddToDisplay.Display("Authentication failed ...", DisplayMessageType.WARNING);
             }
-            HttpEntity entity = response.getEntity();
-            
-            ResponseHandler<String> responseHandler=new BasicResponseHandler();
             String responseString = new BasicResponseHandler().handleResponse(response);
             
             return responseString;
@@ -137,44 +140,49 @@ public class blis {
          return data.trim();
          
     }
-    public static String saveResults(String specimenID, int measureID, String result)
+    public static String saveResult(String testID, String measureID, String result,int dec)
     {
-         String data="-1";
+         String respoinsestring="-1";
         try 
         {  
-                String url = settings.BLIS_URL;
-                url = url + "api/update_result.php?username="+settings.BLIS_USERNAME + "&password="+settings.BLIS_PASSWORD;           
-                url = url + "&specimen_id="+URLEncoder.encode(specimenID,"UTF-8");
-                url = url + "&measure_id="+measureID;
-                url = url + "&result="+URLEncoder.encode(result,"UTF-8");
-                url = url + "&dec=0"; 
-                  
-                 
-                
-                URL burl = new URL(url);  
-                 
-                 try (BufferedReader in = new BufferedReader(new InputStreamReader(burl.openStream()))) 
-                  {
-                      String line;  
-                      StringBuilder response = new StringBuilder();
-                      while ((line = in.readLine()) != null)
-                      {
-                         response.append(line);
-                         
-                      }
-                      data = response.toString();
-                                           
-                  } catch(Exception e){ log.logger.Logger(e.getMessage());}
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
-            log.logger.Logger(ex.getMessage());
-            log.logger.PrintStackTrace(ex);
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+            HttpClient httpclient = HttpClients.createDefault();
+            String blisurl = settings.BLIS_URL + "/api/saveresults";
+            HttpPost httppost = new HttpPost(blisurl);
+            
+            String key = "123456";
+            String testId = testID;
+            String measuereId = measureID;
+            String testResult = result;
+            
+            // Request parameters and other properties.
+            List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+            params.add(new BasicNameValuePair("key", key));
+            params.add(new BasicNameValuePair("testid", testId));
+            params.add(new BasicNameValuePair("measureId", measuereId));
+            params.add(new BasicNameValuePair("testResult", testResult));
+            httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+            
+            try {
+                //Execute and get the response.
+                HttpResponse response = httpclient.execute(httppost);
+                String responseString = new BasicResponseHandler().handleResponse(response);
+                return responseString;
+            }
+            catch (MalformedURLException ex) {
+                Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+                log.logger.Logger(ex.getMessage());
+                log.logger.PrintStackTrace(ex);
+            } catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (IOException ex) {
+                 Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
         }
-         return data.trim();
+         return "";
     }
-    public static String saveResults(String specimenID, int measureID, float result,int dec)
+    public static String saveResults(String testID, int measureID, float result,int dec)
     {
         
         String data="-1";
@@ -182,7 +190,7 @@ public class blis {
         {  
                 String url = settings.BLIS_URL;
                 url = url + "api/update_result.php?username="+settings.BLIS_USERNAME + "&password="+settings.BLIS_PASSWORD;           
-                url = url + "&specimen_id="+URLEncoder.encode(specimenID,"UTF-8");
+                url = url + "&specimen_id="+URLEncoder.encode(testID,"UTF-8");
                 url = url + "&measure_id="+measureID;
                 url = url + "&result="+result;  
                 url = url + "&dec="+dec;  

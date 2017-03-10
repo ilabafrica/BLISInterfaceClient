@@ -218,10 +218,15 @@ public class Humastar100 extends Thread {
             if (DataParts[0].equals("R")){
                 if( DataParts.length > 1){
                     String methodName = DataParts[2];
-                    String results = DataParts[8];
+                    String result = DataParts[8];
                     if(true){
+                        //Get mesure id
+                        //Get testid
+                        String testId = "";
+                        String MeasureID = "";
+                        SaveResult(testId, MeasureID, result);
                         log.AddToDisplay.Display
-                            ("Results with Code: "+ methodName +" and result "+results+" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
+                            ("Results with Code: "+ methodName +" and result "+result+" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
                     }
                     else{
                         log.AddToDisplay.Display
@@ -332,16 +337,15 @@ public class Humastar100 extends Thread {
                              break;
                      }
              }
-
              return measureid;
      }
 
-    private static boolean SaveResults(String barcode,int MeasureID, float value)
+    private static boolean SaveResult(String testId, String MeasureID, String result)
     {
 
 
               boolean flag = false;       
-              if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,0)))
+              if("1".equals(BLIS.blis.saveResult(testId, MeasureID, result,0)))
                {
                       flag = true;
                     }
