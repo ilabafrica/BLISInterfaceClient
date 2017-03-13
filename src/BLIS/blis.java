@@ -19,6 +19,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,6 +29,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
@@ -67,7 +69,7 @@ public class blis {
             String key = "123456";
             String dateFrom = "2017-02-09 00:00:00"; //Today morning
             String dateTo = "2017-02-09 23:59:00"; // Now
-            String testtype = "LFTS"; //Get from params
+            String testtype = "GXM"; //Get from params
             
             // Request parameters and other properties.
             List<NameValuePair> params = new ArrayList<NameValuePair>(2);
@@ -258,6 +260,46 @@ public class blis {
         }
          return data.trim();        
          
+    }
+
+    public static String saveResult(List results) throws UnsupportedEncodingException, IOException {
+        HttpClient httpclient = HttpClients.createDefault();
+            String blisurl = system.settings.BLIS_URL + "/api/saveresults";
+            HttpPost httppost = new HttpPost(blisurl);
+            httppost.setEntity(new UrlEncodedFormEntity(results, "UTF-8"));
+       
+        try {
+            HttpResponse response = httpclient.execute(httppost);
+             Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, response);
+            return "";
+        } catch (IOException ex) {
+            Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+                
+                return "";
+         //To change body of generated methods, choose Tools | Templates.
+    }
+    public static String saveResult(String results) throws UnsupportedEncodingException, IOException {
+        HttpClient httpclient = HttpClients.createDefault();
+            String blisurl = system.settings.BLIS_URL + "/api/saveresults";
+            HttpPost httppost = new HttpPost(blisurl); 
+            List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+            params.add(new BasicNameValuePair("results", results));
+            params.add(new BasicNameValuePair("key", "123456"));
+            /*HttpEntity entity = new ByteArrayEntity(results.getBytes("UTF-8"));
+            httppost.setEntity(entity);*/
+            httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+       
+        try {
+            HttpResponse response = httpclient.execute(httppost);
+             Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, response);
+            return "";
+        } catch (IOException ex) {
+            Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+                
+                return "";
+         //To change body of generated methods, choose Tools | Templates.
     }
     
    

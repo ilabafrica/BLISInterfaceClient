@@ -13,7 +13,6 @@ package TEXT;
 
 
 
-import BLIS.sampledata;
 import configuration.configuration;
 import configuration.xmlparser;
 import java.io.BufferedReader;
@@ -23,16 +22,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import log.DisplayMessageType;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Scanner;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -43,8 +41,9 @@ import org.json.simple.parser.JSONParser;
  * @author Brian Maiyo <bmaiyo@strathmore.edu>
  */
 public class Humastar100 extends Thread {
-	
+	 
 	 private static List<String> testIDs = new ArrayList<String>();
+         String testID="";
 	 static final char Start_Block = (char)2;
 	 static final char End_Block = (char)3;
 	 static final char CARRIAGE_RETURN = 13; 
@@ -53,8 +52,8 @@ public class Humastar100 extends Thread {
 	 private static FileTime  ReadTime;
 	 private static long ReadLine = 1;   
 	 BufferedReader in=null;   
-	
-	
+	 HashMap<String,String> results=new HashMap<String, String>();
+         HashMap<String, HashMap<String, String>> jsonResults = new HashMap<String, HashMap<String,String>>();
 	private static String getFileName(){
 		 return new utilities().getFileName(settings.FILE_NAME, settings.FILE_NAME_FORMAT,settings.FILE_EXTENSION);
 	}
@@ -212,7 +211,9 @@ public class Humastar100 extends Thread {
             return;
         }
 	
-	public static void HandleDataInput(String data){
+	public void HandleDataInput(String data) throws IOException{
+           
+            
             String[] DataParts = data.trim().split(String.valueOf("\\"+settings.SEPERATOR_CHAR));
             //If first part is R means its a results string
             if (DataParts[0].equals("R")){
@@ -222,23 +223,41 @@ public class Humastar100 extends Thread {
                     if(true){
                         //Get mesure id
                         //Get testid
-                        getMeasureID("s");
+                        
+                        
                         String testId = "";
-                        String MeasureID = "";
-                        SaveResult(testId, MeasureID, result);
+                        System.out.println("The test Id is : "+testID+" and the results are "+results.size()); 
+                        String MeasureID = getMeasureID(methodName);
+                        System.out.println("The measure id: "+MeasureID+" And corresponding Method is "+methodName);
+                        results.put(testID+":"+MeasureID,result);
+                        
+                        jsonResults.put("humastar_output", results);
                         log.AddToDisplay.Display
-                            ("Results with Code: "+ methodName +" and result "+result+" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
+                            ("Results with Code: "+ methodName +" and blis corresponding id is "+MeasureID+" and result is "+ result+" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
                     }
                     else{
                         log.AddToDisplay.Display
                             ("Test with Code: "+methodName +" not Found on BLIS ",DisplayMessageType.WARNING);
                     }
                 }
-            }	   
+            }else if(DataParts[0].equals("L")){
+                //It has reached the end of the File. Pick all results and upload
+               BLIS.blis.saveResult(results.toString());
+                System.out.println("This is the hasmaps"+ results.toString());
+                
+            }else if(DataParts[0].equals("P")){
+                
+                //After every test append the resulting hashmap to the jsonResults hashmap
+                testID=DataParts[3];
+                //jsonResults.put(testID, results).toString();
+            }
+                
 	}
 	
 	private void manageResults() 
 	{
+            //Initialize row count
+            int results_rows_count=0;
             if(shouldRead())
             {
                 String path = settings.BASE_DIRECTORY 
@@ -253,6 +272,7 @@ public class Humastar100 extends Thread {
                     in=new BufferedReader(new InputStreamReader(new FileInputStream(in_file)));
                     while((line = in.readLine()) != null){
                         HandleDataInput(line);
+                        results_rows_count+=1;
                     }
                } catch (FileNotFoundException ex) {
                        Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
@@ -327,31 +347,37 @@ public class Humastar100 extends Thread {
             return data;        
     }
 
-     private static int getMeasureID(String humastarMeasure)
+     public String getMeasureID(String humastarMeasure)
      {
-            int measureid = 0;
+            String measureid = "";
             JSONObject mappings = new utilities().loadJsonConfig();
             //Loop through all tests
             //
             JSONObject tests = (JSONObject)mappings.get("LFTS");
             JSONObject visit =  (JSONObject)mappings.get("visit");
+             JSONArray measures=(JSONArray) tests.get("measures");
              
-             for(int i=0;i<testIDs.size();i++)
+             for(int i=0;i<measures.size();i++)
              {
-                     if(testIDs.get(i).split(";")[0].equalsIgnoreCase(humastarMeasure))
+                 JSONObject measure=(JSONObject) measures.get(i);
+                 
+                      String equipment_measure_id=(String) measure.get("equipment_measure_name");
+                
+                     if(equipment_measure_id.equalsIgnoreCase(humastarMeasure))
                      {
-                             measureid = Integer.parseInt(testIDs.get(i).split(";")[1]);
-                             break;
+                             measureid =(String) measure.get("blis_measure_id");
+                             //break;
                      }
              }
              return measureid;
      }
 
-    private static boolean SaveResult(String testId, String MeasureID, String result)
+    private static boolean SaveResult(String testId, int MeasureID1, String MeasureID)
     {
 
 
               boolean flag = false;       
+             String result = null;
               if("1".equals(BLIS.blis.saveResult(testId, MeasureID, result,0)))
                {
                       flag = true;
