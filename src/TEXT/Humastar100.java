@@ -164,7 +164,7 @@ public class Humastar100 extends Thread {
             JSONObject ttype =  (JSONObject)sample.get("test_type");
             JSONArray jarr =  (JSONArray)ttype.get("measures");
             
-            String pdetails =  "P|1||2-FIDO|"+patient.get("name") +"|FIDO||20050000|MALE|||||||||||||||||||||||||";
+            String pdetails =  "P|1||"+patient.get("id")+"|"+patient.get("name") +"|FIDO||20050000|MALE|||||||||||||||||||||||||";
             wrklst.add(pdetails);
             String mheader = "C|1|||";
             wrklst.add(mheader);
