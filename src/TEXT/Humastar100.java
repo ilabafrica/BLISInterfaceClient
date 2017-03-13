@@ -222,6 +222,7 @@ public class Humastar100 extends Thread {
                     if(true){
                         //Get mesure id
                         //Get testid
+                        getMeasureID("s");
                         String testId = "";
                         String MeasureID = "";
                         SaveResult(testId, MeasureID, result);
@@ -326,12 +327,18 @@ public class Humastar100 extends Thread {
             return data;        
     }
 
-     private static int getMeasureID(String equipmentID)
+     private static int getMeasureID(String humastarMeasure)
      {
-             int measureid = 0;
+            int measureid = 0;
+            JSONObject mappings = new utilities().loadJsonConfig();
+            //Loop through all tests
+            //
+            JSONObject tests = (JSONObject)mappings.get("LFTS");
+            JSONObject visit =  (JSONObject)mappings.get("visit");
+             
              for(int i=0;i<testIDs.size();i++)
              {
-                     if(testIDs.get(i).split(";")[0].equalsIgnoreCase(equipmentID))
+                     if(testIDs.get(i).split(";")[0].equalsIgnoreCase(humastarMeasure))
                      {
                              measureid = Integer.parseInt(testIDs.get(i).split(";")[1]);
                              break;

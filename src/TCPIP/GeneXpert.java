@@ -635,7 +635,7 @@ public class GeneXpert extends Thread{
          
          
           boolean flag = false;       
-          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value)))
+          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,1, 1)))
            {
               flag = true;
             }

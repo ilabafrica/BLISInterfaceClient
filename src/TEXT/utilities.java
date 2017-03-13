@@ -12,11 +12,17 @@ package TEXT;
 
 import configuration.configuration;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import log.DisplayMessageType;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -67,6 +73,24 @@ public class utilities {
             return false;
         }
         return true;
+    }
+    
+    public JSONObject loadJsonConfig()
+    {
+        String path = "configs/Humastar/HumastarMappings.json";
+        JSONObject jsonObj = new JSONObject();
+        JSONParser parser = new JSONParser();
+        try {
+            jsonObj = (JSONObject) parser.parse(new FileReader(path));
+            return jsonObj;
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(utilities.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(utilities.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(utilities.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return jsonObj;
     }
         
 }
