@@ -1,34 +1,46 @@
 {
    "LFTS":{
          "measures":[
-		{
-		    "blis_measure_id":"307",
-		    "equipment_measure_name":"ALB"       
-		},
-		{
-		    "blis_measure_id":"134",
-		    "equipment_measure_name":"APDEA"       
-		},
-		{
-		    "blis_measure_id":"138",
-		    "equipment_measure_name":"Bilda"       
-		},
-		{
-		    "blis_measure_id":"132",
-		    "equipment_measure_name":"Bilta"       
-		},
-		{
-		    "blis_measure_id":"135",
-		    "equipment_measure_name":"GOT"       
-		},
-		{
-		   "blis_measure_id":"137",
-		    "equipment_measure_name":"GPT"       
-		},
-		{
-		   "blis_measure_id":"139",
-		    "equipment_measure_name":"PROT"       
-		}
+        {
+            "blis_name":"Albumin",
+            "blis_measure_id":"409",
+            "equipment_measure_name":"Alb"       
+        },
+        {
+            "blis_name":"Alkaline Phosphate",
+            "blis_measure_id":"214",
+            "equipment_measure_name":"APDEA"       
+        },
+        {
+            "blis_name":"Direct Bilirubin",
+            "blis_measure_id":"218",
+            "equipment_measure_name":"Bilda"       
+        },
+        {
+            "blis_name":"Total Bilirubin",
+            "blis_measure_id":"212",
+            "equipment_measure_name":"Bilta"       
+        },
+        {
+            "blis_name":"ASAT",
+            "blis_measure_id":"415",
+            "equipment_measure_name":"GOT"       
+        },
+        {
+            "blis_name":"SGOT",
+            "blis_measure_id":"415",
+            "equipment_measure_name":"GOT"       
+        },
+        {
+           "blis_name":"ALAT",
+           "blis_measure_id":"408",
+            "equipment_measure_name":"GPT"       
+        },
+        {
+           "blis_name":"Total Proteins",
+           "blis_measure_id":"219",
+            "equipment_measure_name":"Prot"       
+        }
         ]
    },
    "RFTS":{

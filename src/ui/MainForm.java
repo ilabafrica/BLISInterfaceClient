@@ -546,8 +546,8 @@ public class MainForm extends javax.swing.JFrame {
                 }
                 switch(jlblEquipment.getText().toUpperCase())
                 {
-                    case "Humastar 100":
-                        bdobj.Stop();
+                    case "HUMASTAR 100":
+                        hmobj.Stop();
                         break;
                 }
                  break;
