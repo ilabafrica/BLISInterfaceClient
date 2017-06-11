@@ -115,18 +115,37 @@ public class Humastar100 extends Thread {
         
         private void getBLISTests(String aux_id, boolean flag){
         try {
-            log.AddToDisplay.Display("Retrieving data from BLIS ",DisplayMessageType.INFORMATION);
-            String data = BLIS.blis.getTestData("", "",aux_id,system.settings.POOL_DAY);
-            JSONParser parser = new JSONParser();
-            JSONArray sampleList = (JSONArray) parser.parse(data);
             
-            if(sampleList.isEmpty()){
+            JSONParser parser = new JSONParser();
+            JSONArray merged=new JSONArray();
+            JSONArray sampleList=new JSONArray();
+            log.AddToDisplay.Display("Retrieving data from BLIS ",DisplayMessageType.INFORMATION);
+            HashMap<String, String> data = BLIS.blis.getTestDataHumastar("", "",aux_id,system.settings.POOL_DAY);
+            for ( Map.Entry<String, String> entry : data.entrySet()) {
+                    String key = entry.getKey();
+                    String test_received = entry.getValue();
+                    System.out.println("THisi sis raw "+test_received);
+                    // do something with key and/or tab
+                     sampleList= (JSONArray) parser.parse(test_received);
+                     merged.add(sampleList.get(0));
+                    
+                }
+            
+            
+           
+           // String lfts=data.get(0);
+           
+            //String merged="["+s1+","+s2+"]";
+            System.out.println("THisi sis merged "+merged.toJSONString());
+           // JSONArray sampleList = (JSONArray) parser.parse(data.get(0));
+            
+            if(merged.isEmpty()){
                 log.AddToDisplay.Display("No data found",DisplayMessageType.INFORMATION);
                 return;
             }
             
             log.AddToDisplay.Display(sampleList.size()+" result(s) test found in BLIS!",DisplayMessageType.INFORMATION);
-            generateWorklist(sampleList);
+            generateWorklist(merged);
             log.AddToDisplay.Display("Test sent sucessfully",DisplayMessageType.INFORMATION);
         }catch(Exception ex){
                 log.logger.PrintStackTrace(ex);
@@ -156,12 +175,17 @@ public class Humastar100 extends Thread {
 
             for (int j=0; j < jarr.size(); j++) 
             {
+                
                 //Loop through measures
                 JSONObject measure = (JSONObject)jarr.get(j);
-                String mdetails = "O|"+(j+1)+"|||"+ getEquipmentMeasureID((String) measure.get("name")) +"|False||||||||||Serum|||||||||||||||";
-                wrklst.add(mdetails);
+                if(getEquipmentMeasureID((String) measure.get("name"))!=""){
+                    String mdetails="";
+                    mdetails= "O|"+(j+1)+"|||"+ getEquipmentMeasureID((String) measure.get("name")) +"|False||||||||||Serum|||||||||||||||"; 
+                    wrklst.add(mdetails);
+                }
+                  
             }
-            log.AddToDisplay.Display("Sending test with CODE: "+sample.get("id") + " to Analyzer Humastar 100",DisplayMessageType.INFORMATION);
+            log.AddToDisplay.Display("Sending test for "+patient.get("name")+" VISIT ID: "+sample.get("visit_id") + " to Analyzer Humastar 100",DisplayMessageType.INFORMATION);
         }
         String hfooter =  "L||N";
         wrklst.add(hfooter);

@@ -40,6 +40,16 @@
            "blis_name":"Total Proteins",
            "blis_measure_id":"219",
             "equipment_measure_name":"Prot"       
+        },
+        {
+           "blis_name":"Creatinine",
+           "blis_measure_id":"146",
+           "equipment_measure_name":"GREAA"        
+        },
+        {
+           "blis_name":"Urea",
+           "blis_measure_id":"147",
+           "equipment_measure_name":"UREAVV"        
         }
         ]
    },

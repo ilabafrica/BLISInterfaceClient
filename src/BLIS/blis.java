@@ -66,6 +66,13 @@ public class blis {
     }
     public static String getTestData(String specimenTypeFilter, String specimenTestFilter, String aux,int DAYS)
     {
+        HashMap<String,String> testsHolder=new HashMap<String,String>();
+       return "non-functional";
+    }
+    
+    public static HashMap<String, String> getTestDataHumastar(String specimenTypeFilter, String specimenTestFilter, String aux,int DAYS)
+    {
+        HashMap<String,String> testsHolder=new HashMap<String,String>();
         try {
             HttpClient httpclient = HttpClients.createDefault();
             String blisurl = settings.BLIS_URL + "/api/searchtests";
@@ -77,16 +84,18 @@ public class blis {
             
             String dateFrom = today + " 00:00:00"; //Today morning
             String dateTo = today + " 23:59:00"; // Now
-            String testtype = "LFTS"; //Get from params
+            String[] testtype = {"LFTS","RFTS"}; //Get from params
             
             // Request parameters and other properties.
+            for(int i=0;i<testtype.length;i++){
             List<NameValuePair> params = new ArrayList<NameValuePair>(2);
             params.add(new BasicNameValuePair("key", key));
             params.add(new BasicNameValuePair("datefrom", dateFrom));
             params.add(new BasicNameValuePair("dateto", dateTo));
-            params.add(new BasicNameValuePair("testtype", testtype));
+            params.add(new BasicNameValuePair("testtype", testtype[i]));
             httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
             
+           
             //Execute and get the response.
             HttpResponse response = httpclient.execute(httppost);
          
@@ -101,14 +110,19 @@ public class blis {
                 log.AddToDisplay.Display("Authentication failed ...", DisplayMessageType.WARNING);
             }
             String responseString = new BasicResponseHandler().handleResponse(response);
+           
+            testsHolder.put(testtype[i]+i, responseString);
             
-            return responseString;
+            }
+            
+            return testsHolder;
+            
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return "";
+        return null;
     }
     public static String getSampleData(String sampleID, String dateFrom, String dateTo,String specimenTypeFilter,String specimenTestFilter)
     {
