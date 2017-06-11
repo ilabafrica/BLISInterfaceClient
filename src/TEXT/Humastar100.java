@@ -61,31 +61,30 @@ public class Humastar100 extends Thread {
 	@Override
 	public void run() {
             log.AddToDisplay.Display("Humastar 100 handler started...", DisplayMessageType.TITLE);
-            log.AddToDisplay.Display("Checking file availability  on this system...", DisplayMessageType.INFORMATION);
-            if(openFile()){
-                log.AddToDisplay.Display("File Available and accessible...", DisplayMessageType.INFORMATION);
-                setTestIDs();
-                if(system.settings.ENABLE_AUTO_POOL)
+            if(system.settings.ENABLE_AUTO_POOL)
+            {
+                while(!stopped)
                 {
-                    while(!stopped)
-                    {             
-                        try {
-                            getBLISTests("",false);
-                                manageResults();
-                            Thread.sleep(system.settings.POOL_INTERVAL * 1000);
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(Humastar100.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+                    try {
+                        getBLISTests("",false);
+                        Thread.sleep(system.settings.POOL_INTERVAL * 1000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Humastar100.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    log.AddToDisplay.Display("Humastar 100 Handler Stopped",log.DisplayMessageType.TITLE);
                 }
-                else{
-                    log.AddToDisplay.Display("Auto Pull Disabled. Only manual activity can be performed",log.DisplayMessageType.INFORMATION);
+                log.AddToDisplay.Display("Humastar 100 Handler Stopped",log.DisplayMessageType.TITLE);
+                while(true){
+                    try {
+                        log.AddToDisplay.Display("Checking for results",log.DisplayMessageType.INFORMATION);
+                        manageResults();
+                        Thread.sleep(10 * 1000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Humastar100.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
-            else
-            {
-                log.AddToDisplay.Display("Could not open file", DisplayMessageType.ERROR);
+            else{
+                log.AddToDisplay.Display("Auto Pull Disabled. Only manual activity can be performed",log.DisplayMessageType.INFORMATION);
             }
 	}
 	
@@ -116,7 +115,8 @@ public class Humastar100 extends Thread {
         
         private void getBLISTests(String aux_id, boolean flag){
         try {
-            String data = BLIS.blis.getTestData(getSpecimenFilter(2), "",aux_id,system.settings.POOL_DAY);
+            log.AddToDisplay.Display("Retrieving data from BLIS ",DisplayMessageType.INFORMATION);
+            String data = BLIS.blis.getTestData("", "",aux_id,system.settings.POOL_DAY);
             JSONParser parser = new JSONParser();
             JSONArray sampleList = (JSONArray) parser.parse(data);
             
@@ -127,22 +127,7 @@ public class Humastar100 extends Thread {
             
             log.AddToDisplay.Display(sampleList.size()+" result(s) test found in BLIS!",DisplayMessageType.INFORMATION);
             generateWorklist(sampleList);
-//                    if(sendTesttoAnalyzer(sampleList.get(i)))
-//                    {
-//                        addToQueue(sampleList.get(i));
-                        log.AddToDisplay.Display("Test sent sucessfully",DisplayMessageType.INFORMATION);
-//                    }
-//                } 
-//                else
-//                {
-//                    if(flag)                         
-//                        log.AddToDisplay.Display("Sample with code: "+aux_id +" already exist in Analyzer",DisplayMessageType.INFORMATION);
-//                }
-//            }
-//            else{
-//                if(flag)                         
-//                   log.AddToDisplay.Display("Sample with code: "+aux_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
-//            }
+            log.AddToDisplay.Display("Test sent sucessfully",DisplayMessageType.INFORMATION);
         }catch(Exception ex){
                 log.logger.PrintStackTrace(ex);
         }
@@ -151,7 +136,7 @@ public class Humastar100 extends Thread {
     private static String generateWorklist(JSONArray sampleList)
     {
         List<String> wrklst = new ArrayList<>();
-        String hheader = "H|\\^&|||HSX00^V1.0|||||Host||P|1|20140117";
+        String hheader = "H|\\^&|||HSX00^V1.0|||||Host||P|1|20110117";
         wrklst.add(hheader);
         //Loops through test list
         for (int i=0; i < sampleList.size(); i++) 
@@ -164,16 +149,16 @@ public class Humastar100 extends Thread {
             JSONObject ttype =  (JSONObject)sample.get("test_type");
             JSONArray jarr =  (JSONArray)ttype.get("measures");
             
-            String pdetails =  "P|1||"+patient.get("id")+"|"+patient.get("name") +"|FIDO||20050000|MALE|||||||||||||||||||||||||";
+            String pdetails =  "P|"+(i+1)+"||"+sample.get("id")+"||"+visit.get("id")+"|"+patient.get("name")+"|20050000|Test|||||||||||||||||||||||||";
             wrklst.add(pdetails);
-            String mheader = "C|1|||";
+            String mheader = "C|"+(i+1)+"|||";
             wrklst.add(mheader);
 
             for (int j=0; j < jarr.size(); j++) 
             {
                 //Loop through measures
                 JSONObject measure = (JSONObject)jarr.get(j);
-                String mdetails = "O|1|2458||"+ measure.get("name") +"|False||||||||||Serum|||||||||||||||";
+                String mdetails = "O|"+(j+1)+"|||"+ getEquipmentMeasureID((String) measure.get("name")) +"|False||||||||||Serum|||||||||||||||";
                 wrklst.add(mdetails);
             }
             log.AddToDisplay.Display("Sending test with CODE: "+sample.get("id") + " to Analyzer Humastar 100",DisplayMessageType.INFORMATION);
@@ -212,19 +197,13 @@ public class Humastar100 extends Thread {
         }
 	
 	public void HandleDataInput(String data) throws IOException{
-           
-            
             String[] DataParts = data.trim().split(String.valueOf("\\"+settings.SEPERATOR_CHAR));
             //If first part is R means its a results string
             if (DataParts[0].equals("R")){
                 if( DataParts.length > 1){
                     String methodName = DataParts[2];
                     String result = DataParts[8];
-                    if(true){
-                        //Get mesure id
-                        //Get testid
-                        
-                        
+                    if(true){                    
                         String testId = "";
                         System.out.println("The test Id is : "+testID+" and the results are "+results.size()); 
                         String MeasureID = getMeasureID(methodName);
@@ -264,8 +243,8 @@ public class Humastar100 extends Thread {
                         + System.getProperty("file.separator")
                         + settings.OUTPUT_DIRECTORY 
                         + System.getProperty("file.separator")
-                        + getFileName();         
-
+                        + "myworklist-140317.astm";        
+                //String path='C:/ProgramData/HI/Human/LIS/ASTM/Output Worklist/myworklist-140317.astm';
                 File in_file = new File(path);
                 String line="";
                 try {
@@ -284,68 +263,16 @@ public class Humastar100 extends Thread {
 	
 	private boolean shouldRead(){
             boolean flag = false;
-//             String path = settings.BASE_DIRECTORY 
-//                             + System.getProperty("file.separator")
-//                             + getFileName();         
-//
-//            Path file = Paths.get(path);
-//             try {           
-//                BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
-//                if(null == ReadTime || (attr.lastModifiedTime().compareTo(ReadTime) > 0))
-//                {
-//                        flag = true;
-//
-//                }            
-//                else
-//                {
-//                        flag = false;
-//                }
-//             } catch (IOException ex) {
-//                     Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
-//             }
-
             return true;
 	}   
    
 	
 	public void Stop()
 	{
-	
-		 log.AddToDisplay.Display("Stoping handler", log.DisplayMessageType.TITLE);
-		 
-		 stopped = true;           
-		 this.interrupt();
-		/*if(Manager.closeOpenedPort())
-		{
-			log.AddToDisplay.Display("Port Closed sucessfully", log.DisplayMessageType.INFORMATION);
-		}*/
+            log.AddToDisplay.Display("Stoping handler", log.DisplayMessageType.TITLE);
+            stopped = true;           
+            this.interrupt();
 	}
-	
-    private void setTestIDs()
-     {
-             String equipmentid = getSpecimenFilter(3);
-             String blismeasureid = getSpecimenFilter(4);
-
-             String[] equipmentids = equipmentid.split(",");
-             String[] blismeasureids = blismeasureid.split(",");
-             for(int i=0;i<equipmentids.length;i++)
-             {
-                     testIDs.add(equipmentids[i]+";"+blismeasureids[i]);             
-             }
-
-     }
-
-    private static String getSpecimenFilter(int whichdata)
-    {
-            String data = "";
-            xmlparser p = new xmlparser("configs/BDFACSCalibur/bdfacscalibur.xml");
-            try {
-                    data = p.getMicros60Filter(whichdata);           
-            } catch (Exception ex) {
-                    Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
-            }        
-            return data;        
-    }
 
      public String getMeasureID(String humastarMeasure)
      {
@@ -371,19 +298,28 @@ public class Humastar100 extends Thread {
              }
              return measureid;
      }
-
-    private static boolean SaveResult(String testId, int MeasureID1, String MeasureID)
-    {
-
-
-              boolean flag = false;       
-             String result = null;
-              if("1".equals(BLIS.blis.saveResult(testId, MeasureID, result,0)))
-               {
-                      flag = true;
-                    }
-
-             return flag;
-
-    }
+     public static String getEquipmentMeasureID(String blismeasure)
+     {
+            String measureid = "";
+            JSONObject mappings = new utilities().loadJsonConfig();
+            //Loop through all tests
+            //
+            JSONObject tests = (JSONObject)mappings.get("LFTS");
+            JSONObject visit =  (JSONObject)mappings.get("visit");
+             JSONArray measures=(JSONArray) tests.get("measures");
+             
+             for(int i=0;i<measures.size();i++)
+             {
+                 JSONObject measure=(JSONObject) measures.get(i);
+                 
+                      String equipment_measure_id=(String) measure.get("blis_name");
+                
+                     if(equipment_measure_id.equalsIgnoreCase(blismeasure))
+                     {
+                             measureid =(String) measure.get("equipment_measure_name");
+                             //break;
+                     }
+             }
+             return measureid;
+     }
 }
