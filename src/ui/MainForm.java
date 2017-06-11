@@ -348,7 +348,7 @@ public class MainForm extends javax.swing.JFrame {
         // TODO add your handling code here:
         //JOptionPane.showMessageDialog(null, "Form Opened");
         getConfigurations();
-        manageHandlers();
+       // manageHandlers();
         setManualActivity();
         new ResetMan().start();
     }//GEN-LAST:event_formWindowOpened
@@ -366,7 +366,7 @@ public class MainForm extends javax.swing.JFrame {
 
     private void formWindowLostFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowLostFocus
         // TODO add your handling code here:
-        setVisible(false);
+        //setVisible(false);
         item3.setLabel("Show Interface");
     }//GEN-LAST:event_formWindowLostFocus
 
@@ -390,7 +390,7 @@ public class MainForm extends javax.swing.JFrame {
         jbtnStart.setText("Stop");
         item2.setLabel("Stop");
       }
-      else
+      else if (jbtnStart.getText().equalsIgnoreCase("Stop"))
       {   
           stopAppropriateHandler();
           jbtnStart.setText("Start");

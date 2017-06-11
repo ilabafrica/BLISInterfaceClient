@@ -308,8 +308,9 @@ public class blis {
             List<NameValuePair> params = new ArrayList<NameValuePair>(2);
             params.add(new BasicNameValuePair("results", results));
             params.add(new BasicNameValuePair("key", "123456"));
-            /*HttpEntity entity = new ByteArrayEntity(results.getBytes("UTF-8"));
-            httppost.setEntity(entity);*/
+            //HttpEntity entity = new ByteArrayEntity(results.getBytes("UTF-8"));
+            //httppost.setEntity(entity);
+           // System.out.println("THis is params",params);
             httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
        
         try {

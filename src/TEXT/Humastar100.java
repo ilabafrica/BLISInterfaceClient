@@ -124,14 +124,15 @@ public class Humastar100 extends Thread {
             for ( Map.Entry<String, String> entry : data.entrySet()) {
                     String key = entry.getKey();
                     String test_received = entry.getValue();
-                    System.out.println("THisi sis raw "+test_received);
+                    if(!test_received.equals("[]")){
+                    System.out.println("What "+test_received);
                     // do something with key and/or tab
                      sampleList= (JSONArray) parser.parse(test_received);
                      merged.add(sampleList.get(0));
-                    
+                    }
                 }
             
-            
+            merged.add(sampleList.get(0));
            
            // String lfts=data.get(0);
            
@@ -267,7 +268,7 @@ public class Humastar100 extends Thread {
                         + System.getProperty("file.separator")
                         + settings.OUTPUT_DIRECTORY 
                         + System.getProperty("file.separator")
-                        + "myworklist-140317.astm";        
+                        + getFileName();        
                 //String path='C:/ProgramData/HI/Human/LIS/ASTM/Output Worklist/myworklist-140317.astm';
                 File in_file = new File(path);
                 String line="";
@@ -277,12 +278,16 @@ public class Humastar100 extends Thread {
                         HandleDataInput(line);
                         results_rows_count+=1;
                     }
+                    //Delete the Astm File
+                    
                } catch (FileNotFoundException ex) {
                        Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
                } catch (IOException ex) {
                        Logger.getLogger(BDFACSCalibur.class.getName()).log(Level.SEVERE, null, ex);
-               }    		
+               }   
+                delete(path);                
             }
+            
 	}
 	
 	private boolean shouldRead(){
@@ -346,4 +351,22 @@ public class Humastar100 extends Thread {
              }
              return measureid;
      }
+
+    private void delete(String path) {
+        try{
+
+    		File file = new File(path);
+
+    		if(file.delete()){
+    			System.out.println(file.getName() + " is deleted!");
+    		}else{
+    			System.out.println("Delete operation is failed.");
+    		}
+
+    	}catch(Exception e){
+
+    		e.printStackTrace();
+
+    	}
+    }
 }
