@@ -18,7 +18,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -66,10 +71,13 @@ public class blis {
             String blisurl = settings.BLIS_URL + "/api/searchtests";
             HttpPost httppost = new HttpPost(blisurl);
             
-            String key = "123456";
-            String dateFrom = "2017-02-09 00:00:00"; //Today morning
-            String dateTo = "2017-02-09 23:59:00"; // Now
-            String testtype = "GXM"; //Get from params
+            String key = "123456";           
+            
+            String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            
+            String dateFrom = today + " 00:00:00"; //Today morning
+            String dateTo = today + " 23:59:00"; // Now
+            String testtype = "LFTS"; //Get from params
             
             // Request parameters and other properties.
             List<NameValuePair> params = new ArrayList<NameValuePair>(2);

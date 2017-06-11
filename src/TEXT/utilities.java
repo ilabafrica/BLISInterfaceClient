@@ -47,7 +47,7 @@ public class utilities {
         String name = "";
         if (filename != null){
             if(!Format.contains("*")){
-                name =  filename + "_" + system.utilities.getSystemDate(Format);
+                name =  filename + "-" + system.utilities.getSystemDate(Format);
             }
         }
         else {
