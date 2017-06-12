@@ -38,6 +38,9 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import system.settings;
 
 /**
@@ -110,11 +113,25 @@ public class blis {
                 log.AddToDisplay.Display("Authentication failed ...", DisplayMessageType.WARNING);
             }
             String responseString = new BasicResponseHandler().handleResponse(response);
-           
-            testsHolder.put(testtype[i]+i, responseString);
+           // System.out.println(responseString);
+            JSONParser parser = new JSONParser();
+                try {
+                    JSONArray tests= (JSONArray) parser.parse(responseString);
+                int counter=0;
+                for (Object test : tests) {
+                    JSONObject testi=(JSONObject) parser.parse(test.toString());
+                    //System.out.println("we are here"+testi.get("id").toString());
+                    testsHolder.put((String) testi.get("id"), test.toString());
+                    counter++;
+                }
+                } catch (org.json.simple.parser.ParseException ex) {
+                    Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            
             
             }
-            
+            //System.out.println(testsHolder);
+           // System.out.println(testsHolder);
             return testsHolder;
             
         } catch (UnsupportedEncodingException ex) {

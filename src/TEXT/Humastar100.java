@@ -61,9 +61,11 @@ public class Humastar100 extends Thread {
 	@Override
 	public void run() {
             log.AddToDisplay.Display("Humastar 100 handler started...", DisplayMessageType.TITLE);
+            getBLISTests("",false);
+           // Thread.sleep(system.settings.POOL_INTERVAL * 1000);
             if(system.settings.ENABLE_AUTO_POOL)
             {
-                while(!stopped)
+               /* while(!stopped)
                 {
                     try {
                         getBLISTests("",false);
@@ -71,7 +73,7 @@ public class Humastar100 extends Thread {
                     } catch (InterruptedException ex) {
                         Logger.getLogger(Humastar100.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                }
+                }*/
                 log.AddToDisplay.Display("Humastar 100 Handler Stopped",log.DisplayMessageType.TITLE);
                 while(true){
                     try {
@@ -118,7 +120,7 @@ public class Humastar100 extends Thread {
             
             JSONParser parser = new JSONParser();
             JSONArray merged=new JSONArray();
-            JSONArray sampleList=new JSONArray();
+            JSONObject sampleList=new JSONObject();
             log.AddToDisplay.Display("Retrieving data from BLIS ",DisplayMessageType.INFORMATION);
             HashMap<String, String> data = BLIS.blis.getTestDataHumastar("", "",aux_id,system.settings.POOL_DAY);
             for ( Map.Entry<String, String> entry : data.entrySet()) {
@@ -127,12 +129,12 @@ public class Humastar100 extends Thread {
                     if(!test_received.equals("[]")){
                     System.out.println("What "+test_received);
                     // do something with key and/or tab
-                     sampleList= (JSONArray) parser.parse(test_received);
-                     merged.add(sampleList.get(0));
+                      sampleList= (JSONObject) parser.parse(test_received);
+                     merged.add(sampleList);
                     }
                 }
             
-            merged.add(sampleList.get(0));
+            //merged.add(sampleList.get(0));
            
            // String lfts=data.get(0);
            
@@ -205,8 +207,10 @@ public class Humastar100 extends Thread {
         public static void writeToFile(List content)
         {
             String path = settings.BASE_DIRECTORY 
-                             + System.getProperty("file.separator")
-                             + getFileName();
+                        + System.getProperty("file.separator")
+                        + settings.INPUT_DIRECTORY 
+                        + System.getProperty("file.separator")
+                        + getFileName(); 
             try {
                 PrintWriter hworklist = new PrintWriter(path);
                 
