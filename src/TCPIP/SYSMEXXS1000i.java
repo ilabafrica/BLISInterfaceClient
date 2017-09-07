@@ -157,24 +157,23 @@ public class SYSMEXXS1000i extends Thread{
          }
          catch(IOException e)
          {
-                if(first)
-		{
-                    if(tcpsettings.SERVER_MODE)
-                        log.AddToDisplay.Display("could not listen on port :"+tcpsettings.PORT + " "+e.getMessage(),DisplayMessageType.ERROR);
-                    else
-                        log.AddToDisplay.Display("could not connect to server: "+tcpsettings.EQUIPMENT_IP+" on port :"+tcpsettings.PORT + " "+e.getMessage(),DisplayMessageType.ERROR);
-                   // log.logger.Logger(e.getMessage());
-		}
-		else
-		{
-                    log.AddToDisplay.Display("SYSMEX XS-1000i client is now disconnected!",DisplayMessageType.WARNING);
-                    log.logger.Logger(e.getMessage());
-		}
+            if(first)
+            {
+              if(tcpsettings.SERVER_MODE)
+                  log.AddToDisplay.Display("could not listen on port :"+tcpsettings.PORT + " "+e.getMessage(),DisplayMessageType.ERROR);
+              else
+                  log.AddToDisplay.Display("could not connect to server: "+tcpsettings.EQUIPMENT_IP+" on port :"+tcpsettings.PORT + " "+e.getMessage(),DisplayMessageType.ERROR);
+             // log.logger.Logger(e.getMessage());
+            }
+            else
+            {
+              log.AddToDisplay.Display("SYSMEX XS-1000i client is now disconnected!",DisplayMessageType.WARNING);
+              log.logger.Logger(e.getMessage());
+            }
 
 
-	}
-       
-    }
+	       }
+      }
     
     public void getFromBlis(String barcode)
      {   
@@ -365,36 +364,36 @@ public class SYSMEXXS1000i extends Thread{
                 String pidParts[] = msgParts[1].split("\\|");
                 if(pidParts.length > 5)
                 {
-                    String patientid = pidParts[4];
-                    String SampleID = "";//msgParts[3].split("\\|")[3].split("\\^")[2].trim();
+                    String patientid = pidParts[1];
+                    String SampleID = "";
                     //SampleID = utilities.getSystemDate("YYYY") + SampleID;
                     SampleID =  patientid;
                     int mID=0;
                     float value = 0;
                     boolean flag = false;
+log.AddToDisplay.Display("\nis it 29: "+msgParts.length,DisplayMessageType.INFORMATION);
+                    // might want to use 29 instead of msgParts.length... lets see, they are 34
                     for(int i=5;i<msgParts.length;i++)
                     {
-                        try
+                        // measure id of the instrument
+                        mID = getMeasureID(msgParts[i].split("\\|")[1]);
+log.AddToDisplay.Display("\ninstrument measure id: "+mID,DisplayMessageType.INFORMATION);
+                        if(mID > 0)
                         {
-                            mID = getMeasureID(msgParts[i].split("\\|")[2].split("\\^")[4].trim());
-                        }catch(ArrayIndexOutOfBoundsException ex) { mID =0;}
-                            if(mID > 0)
+                            try
                             {
-                                try
-                                {
-                                    value = Float.parseFloat(msgParts[i].split("\\|")[3]);
-                                }catch(NumberFormatException e){
-                                    try{
-                                    value = 0;
-                                    }catch(NumberFormatException ex){}
+                                value = Float.parseFloat(msgParts[i].split("\\|")[3]);
+                            }catch(NumberFormatException e){
+                                try{
+                                value = 0;
+                                }catch(NumberFormatException ex){}
 
-                                }
-                                //System.out.println(" sample:"+SampleID +" mid:"+ mID+ " value:"+value);
-                                if(SaveResults(SampleID, mID,value))
-                                {
-                                    flag = true;
-                                }
                             }
+                            if(SaveResults(SampleID, mID,value))
+                            {
+                                flag = true;
+                            }
+                        }
                     }
                      if(flag)
                         {
@@ -506,6 +505,7 @@ public class SYSMEXXS1000i extends Thread{
     
      private void setTestIDs()
      {
+log.AddToDisplay.Display("SETTING MEASURE IDS, BLIS AND EQUIPMENT HOW DOES IT HAPPEN"+equipmentID, log.DisplayMessageType.INFORMATION);
          String equipmentid = getSpecimenFilter(3);
          String blismeasureid = getSpecimenFilter(4); 
         
@@ -513,7 +513,7 @@ public class SYSMEXXS1000i extends Thread{
          String[] blismeasureids = blismeasureid.split(",");
          for(int i=0;i<equipmentids.length;i++)
          {
-             testIDs.add(equipmentids[i]+";"+blismeasureids[i]);             
+             testIDs.add(equipmentids[i]+";"+blismeasureids[i]);
          }
         
      }
@@ -523,17 +523,18 @@ public class SYSMEXXS1000i extends Thread{
         String data = "";
         xmlparser p = new xmlparser("configs/SYSMEX/SYSMEXXS1000i.xml");
         try {
-            data = p.getMicros60Filter(whichdata);           
+            data = p.getMicros60Filter(whichdata);
         } catch (Exception ex) {
-            Logger.getLogger(SYSMEXXS500i.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SYSMEXXS1000i.class.getName()).log(Level.SEVERE, null, ex);
             log.logger.PrintStackTrace(ex);
             log.AddToDisplay.Display(ex.getMessage(), log.DisplayMessageType.ERROR);
-        }        
-        return data;        
+        }
+        return data;
     }
     
      private static int getMeasureID(String equipmentID)
      {
+log.AddToDisplay.Display("getting measureid from equipmentID"+equipmentID, log.DisplayMessageType.INFORMATION);
          int measureid = 0;
          for(int i=0;i<testIDs.size();i++)
          {
@@ -544,6 +545,7 @@ public class SYSMEXXS1000i extends Thread{
              }
          }
          
+log.AddToDisplay.Display(equipmentID+"is your measureid", log.DisplayMessageType.INFORMATION);
          return measureid;
      }
      private static String getEquipmentID(String measureID)

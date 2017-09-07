@@ -261,23 +261,23 @@ public class SYSMEXXS500i extends Thread{
                     boolean flag = false;
                     for(int i=5;i<=29;i++)
                     {
-                            mID = getMeasureID(msgParts[i].split("\\|")[1]);
-                            if(mID > 0)
+                        mID = getMeasureID(msgParts[i].split("\\|")[1]);
+                        if(mID > 0)
+                        {
+                            try
                             {
-                                try
-                                {
-                                    value = Float.parseFloat(msgParts[i].split("\\|")[3]);
-                                }catch(NumberFormatException e){
-                                    try{
-                                    value = 0;
-                                    }catch(NumberFormatException ex){}
+                                value = Float.parseFloat(msgParts[i].split("\\|")[3]);
+                            }catch(NumberFormatException e){
+                                try{
+                                value = 0;
+                                }catch(NumberFormatException ex){}
 
-                                }
-                                if(SaveResults(SampleID, mID,value))
-                                {
-                                    flag = true;
-                                }
                             }
+                            if(SaveResults(SampleID, mID,value))
+                            {
+                                flag = true;
+                            }
+                        }
                     }
                      if(flag)
                         {

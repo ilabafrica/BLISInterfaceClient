@@ -76,7 +76,7 @@ class ClientThread extends Thread
                         int val;
                         String line ="";
                         while((val = inFromEquipment.read()) > -1)
-                        {                     
+                        {
                           if(val != 13)
                             line = line + (char)val;   
                           else
@@ -85,7 +85,7 @@ class ClientThread extends Thread
                              read = read + line;
                              if(line.startsWith("L|1|N"))
                                  break;
-                             line ="";                             
+                             line ="";
                              c++;
                           }
                           /*if(c>=29)
@@ -98,7 +98,7 @@ class ClientThread extends Thread
                         int val;
                         String line ="";
                         while((val = inFromEquipment.read()) > -1)
-                        {                     
+                        {
                           if(val != 13)
                           {
                             line = line + (char)val; 
@@ -108,19 +108,45 @@ class ClientThread extends Thread
                                  read = read + line;
                                  break;
                              }
-                                 
                           }
                           else
                           {
                              line = line + "\r";
                              read = read + line;
                              if(line.startsWith("L|1|N"))
-                                 break;                            
-                             line ="";                             
+                                 break;
+                             line ="";
                              c++;
                           }
                           /*if(c>=29)
                               break;*/
+                        }
+                    }
+                    else if(this.Equipmentname.equalsIgnoreCase("SYSMEX XS-1000i"))
+                    {
+                        int c=0;
+                        int val;
+                        String line ="";
+                        while((val = inFromEquipment.read()) > -1)
+                        {
+                          if(val != 13)
+                          {
+                            line = line + (char)val;
+                             if((char)val == ACK || (char)val == ENQ || (char)val == NAK || (char)val == EOT || (char)val == ETX)
+                             {
+                                 read = read + line;
+                                 break;
+                             }
+                          }
+                          else
+                          {
+                             line = line + "\r";
+                             read = read + line;
+                             if(line.startsWith("L|1|N"))
+                                 break;
+                             line ="";
+                             c++;
+                          }
                         }
                     }
                     else if(this.Equipmentname.equalsIgnoreCase("GENEXPERT"))
@@ -142,10 +168,10 @@ class ClientThread extends Thread
                           else
                           {
                              line = line + "\r";
-                             read = read + line;                                                       
-                             line ="";                             
+                             read = read + line;
+                             line ="";
                              c++;
-                          }                            
+                          }
                         }
                     }
                     else if (this.Equipmentname.equalsIgnoreCase("FLEXOR JUNIOR"))
@@ -163,7 +189,7 @@ class ClientThread extends Thread
                              read = read + line;
                              if(line.startsWith("L|1|N"))
                                  break;
-                             line ="";                             
+                             line ="";
                              c++;
                           }
                           /*if(c>=29)
@@ -184,41 +210,42 @@ class ClientThread extends Thread
                 }catch(NullPointerException ex){
                      log.AddToDisplay.Display(ex.getMessage(), log.DisplayMessageType.ERROR);
                 }                  
-                 
-                  if(!read.isEmpty())
+
+                if(!read.isEmpty())
+                {
+                  log.AddToDisplay.Display("New message recieved", log.DisplayMessageType.TITLE);
+                  log.AddToDisplay.Display(read, log.DisplayMessageType.INFORMATION);
+                  system.utilities.writetoFile(read.replaceAll("<::>", "\r"));
+
+                  switch(this.Equipmentname)
                   {
-                    log.AddToDisplay.Display("New message recieved", log.DisplayMessageType.TITLE);     
-                    log.AddToDisplay.Display(read, log.DisplayMessageType.INFORMATION);         
-                    system.utilities.writetoFile(read.replaceAll("<::>", "\r"));
-                  
-                    switch(this.Equipmentname)
-                    {
-                        case "Mindray BS-200E":
-                            MindrayBS200E.handleMessage(read);
-                            break;
-                        case "BT3000PlUSChameleon":
-                            BT3000PlusChameleon.handleMessage(read);
-                            break;
-                        case "SYSMEX XS-500i":
-                            SYSMEXXS500i.handleMessage(read);
-                            break;
-                        case "FLEXOR JUNIOR":
-                            FlexorJunior.handleMessage(read);
-                            break;
-                        case "CobasAmpliPrep":
-                            CobasAmpliPrep.handleMessage(read);
-                            break;
-                        case "GENEXPERT":
-                            GeneXpert.handleMessage(read);
-                            break;
-                        case "SYSMEX XT-2000i":
-                            SYSMEXXT2000i.handleMessage(read);
-                            break;
-                    }   
+                      case "Mindray BS-200E":
+                          MindrayBS200E.handleMessage(read);
+                          break;
+                      case "BT3000PlUSChameleon":
+                          BT3000PlusChameleon.handleMessage(read);
+                          break;
+                      case "SYSMEX XS-500i":
+                          SYSMEXXS500i.handleMessage(read);
+                          break;
+                      case "SYSMEX XS-1000i":
+                          SYSMEXXS1000i.handleMessage(read);
+                          break;
+                      case "FLEXOR JUNIOR":
+                          FlexorJunior.handleMessage(read);
+                          break;
+                      case "CobasAmpliPrep":
+                          CobasAmpliPrep.handleMessage(read);
+                          break;
+                      case "GENEXPERT":
+                          GeneXpert.handleMessage(read);
+                          break;
+                      case "SYSMEX XT-2000i":
+                          SYSMEXXT2000i.handleMessage(read);
+                          break;
                   }
-                            
+                }
             }
-           
        }catch(IOException e){
            logger.Logger(e.getMessage());
            log.AddToDisplay.Display(e.getMessage(), log.DisplayMessageType.ERROR);
