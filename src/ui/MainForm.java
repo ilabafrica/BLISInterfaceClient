@@ -68,6 +68,7 @@ public class MainForm extends javax.swing.JFrame {
     GeneXpert expobj = null;
     SYSMEXXT2000i sys2000iObj = null;
     FlexorE flexObj = null;
+    SYSMEXXS1000i sys1000iObj = null;
    //public static boolean reset = false;
    public static enum RESET
    {
@@ -526,6 +527,9 @@ public class MainForm extends javax.swing.JFrame {
                     case "SYSMEX XT-2000I":
                         sys2000iObj.Stop();
                         break;
+                    case "SYSMEX XS-1000I":                        
+                        sys1000iObj.Stop();
+                        break;
                 }
                 break;
             case "MSACCESS":
@@ -617,6 +621,10 @@ public class MainForm extends javax.swing.JFrame {
                      case "SYSMEX XT-2000I":
                         sys2000iObj = new SYSMEXXT2000i();
                         sys2000iObj.start();
+                        break;
+                    case "SYSMEX XS-1000I":                        
+                        sys1000iObj = new SYSMEXXS1000i();
+                        sys1000iObj.start();
                         break;
                 }
                 break;
