@@ -19,7 +19,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -38,7 +37,7 @@ public class blis {
     
     private static String getFormatedDate(String strDate)
     {
-         String date="";
+        String date="";
         date = strDate.substring(0, 4)+"-";
         date = date + strDate.substring(4, 6)+ "-";
         date = date + strDate.substring(6, 8);
