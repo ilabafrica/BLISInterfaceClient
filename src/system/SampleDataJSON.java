@@ -24,8 +24,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import log.DisplayMessageType;
 
-
-
 /**
  *
  * @author Stephen Adjei-Kyei <stephen.adjei.kyei@gmail.com>
