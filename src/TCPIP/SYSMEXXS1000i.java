@@ -354,19 +354,20 @@ public class SYSMEXXS1000i extends Thread{
                 ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(ETX)+String.valueOf(CR), "");
                 String[] msgParts = ASTMMsgs.trim().split("\r");
                 String pidParts[] = msgParts[1].split("\\|");
-                String speimenIdParts[] = msgParts[0].split("\\|");
+                String speimenIdParts[] = msgParts[3].split("\\|");
                 if(pidParts.length > 5)
                 {
+                    // in XS100i sample id is synonimous with patient id - see documentation
                     String patientid = pidParts[1];
                     String SampleID = "";
-                    SampleID =  speimenIdParts[13].trim();
+                    SampleID =  speimenIdParts[2].trim();
                     int mID=0;
                     float value = 0;
                     boolean flag = false;
                     // might want to use 29 instead of msgParts.length... lets see, they are 34
                     for(int i=5;i<msgParts.length;i++)
                     {
-                        // measure id of the instrument
+                        // measure id of the instrument, now get mmeasure id of LIS
                         mID = getMeasureID(msgParts[i].split("\\|")[1]);
                         if(mID > 0)
                         {
@@ -415,31 +416,28 @@ public class SYSMEXXS1000i extends Thread{
             }
             else if(type == MSGTYPE.ACK)
             {
-                if(appMode == MODE.SENDING_QUERY)
-                {
-                    if(PatientTest.size()>0)
-                    {
-                        AddtoQueue(PatientTest.poll());
-                        /*while(PatientTest.size() > 0)
-                        {
-                            AddtoQueue(PatientTest.poll());
-                        }*/
-                        //AddtoQueue(EOT);
-                    }
-                    else
-                    {
-                        AddtoQueue(EOT);
-                        Thread.sleep(500);
-                        appMode = MODE.IDLE;
-                        synchronized(MainForm.set)
-                        {
-                            MainForm.set = MainForm.RESET.NOW;
-                        }
-                    }
-                }
-
-
-
+              if(appMode == MODE.SENDING_QUERY)
+              {
+                  if(PatientTest.size()>0)
+                  {
+                      AddtoQueue(PatientTest.poll());
+                      /*while(PatientTest.size() > 0)
+                      {
+                          AddtoQueue(PatientTest.poll());
+                      }*/
+                      //AddtoQueue(EOT);
+                  }
+                  else
+                  {
+                      AddtoQueue(EOT);
+                      Thread.sleep(500);
+                      appMode = MODE.IDLE;
+                      synchronized(MainForm.set)
+                      {
+                          MainForm.set = MainForm.RESET.NOW;
+                      }
+                  }
+              }
             }
 
         }catch(Exception ex)
@@ -476,6 +474,7 @@ public class SYSMEXXS1000i extends Thread{
                 break;
             default:
                 String[] parts = msg.split("\r");
+                // todo: dont understand the functions of this
                 if(parts.length > 1 )
                 {
                     if(parts[1].startsWith("Q|"))
