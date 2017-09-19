@@ -1,12 +1,12 @@
-/* 
+/*
  *  C4G BLIS Equipment Interface Client
- * 
+ *
  *  Project funded by PEPFAR
- * 
- *  Philip Boakye      - Team Lead  
+ *
+ *  Philip Boakye      - Team Lead
  *  Patricia Enninful  - Technical Officer
  *  Stephen Adjei-Kyei - Software Developer
- * 
+ *
  */
 package TCPIP;
 import java.io.*;
@@ -17,56 +17,55 @@ import log.*;
 /**
  *
  * @author Stephen Adjei-Kyei <stephen.adjei.kyei@gmail.com>
- * 
+ *
  * This is the main client thread that handles all communication to equipment using the TCP/IP protocol
  */
 class ClientThread extends Thread
-{   
-    String read;   
-    BufferedReader inFromEquipment=null;   
-    Socket connSock = null;   
+{
+    String read;
+    BufferedReader inFromEquipment=null;
+    Socket connSock = null;
     String Equipmentname=null;
-    private static final char CARRIAGE_RETURN = 13; 
+    private static final char CARRIAGE_RETURN = 13;
     private static final char STX = 0x02;
     private static final char ACK = 0x06;
     private static final char EOT = 0x04;
     private static final char NAK = 0x15;
     private static final char NUL = 0x00;
     private static final char ENQ = 0x05;
-    private static final char ETX = 0x03;  
+    private static final char ETX = 0x03;
     private static final char ETB = 0x17;
     public ClientThread( Socket conn, String Equipment)
     {
-         this.connSock= conn;    
-         this.Equipmentname = Equipment;
-         System.out.println("Client instance created");
-         log.AddToDisplay.Display("Client instance created", log.DisplayMessageType.INFORMATION);
-         logger.Logger("Client instance created");
-         
+      this.connSock= conn;
+      this.Equipmentname = Equipment;
+      System.out.println("Client instance created");
+      log.AddToDisplay.Display("Client instance created", log.DisplayMessageType.INFORMATION);
+      logger.Logger("Client instance created");
     }
     @Override
     public void run() {
        try
        {
-         
+
             System.out.println("Client has started");
             log.AddToDisplay.Display("Client thread has started", log.DisplayMessageType.INFORMATION);
             logger.Logger("Client thread has started");
-           
+
            String input ="";
             while(true)
             {
                 try
                 {
                   inFromEquipment=new BufferedReader(new InputStreamReader (connSock.getInputStream()));
-                 
+
                     read = "";
                     if(this.Equipmentname.equalsIgnoreCase("Mindray BS-200E"))
                     {
                         while((input = inFromEquipment.readLine()).length()> 1)
                         {
 
-                          read = read + input + "<::>";   
+                          read = read + input + "<::>";
                              //count++;
                         }
                     }
@@ -78,7 +77,7 @@ class ClientThread extends Thread
                         while((val = inFromEquipment.read()) > -1)
                         {
                           if(val != 13)
-                            line = line + (char)val;   
+                            line = line + (char)val;
                           else
                           {
                              line = line + "\r";
@@ -101,7 +100,7 @@ class ClientThread extends Thread
                         {
                           if(val != 13)
                           {
-                            line = line + (char)val; 
+                            line = line + (char)val;
                            // log.AddToDisplay.Display((char)val+"",0);
                              if((char)val == ACK || (char)val == ENQ || (char)val == NAK || (char)val == EOT || (char)val == ETX)
                              {
@@ -157,13 +156,12 @@ class ClientThread extends Thread
                         while((val = inFromEquipment.read()) > -1)
                         { if(val != 13)
                           {
-                            line = line + (char)val;  
+                            line = line + (char)val;
                              if((char)val == ACK || (char)val == ENQ || (char)val == NAK || (char)val == EOT || (char)val == ETX|| (char)val == ETB)
                              {
                                  read = read + line;
                                  break;
                              }
-                                 
                           }
                           else
                           {
@@ -180,9 +178,9 @@ class ClientThread extends Thread
                         int val;
                         String line ="";
                         while((val = inFromEquipment.read()) > -1)
-                        {                     
+                        {
                           if(val != 13)
-                            line = line + (char)val;   
+                            line = line + (char)val;
                           else
                           {
                              line = line + "\r";
@@ -201,15 +199,15 @@ class ClientThread extends Thread
                         while((input = inFromEquipment.readLine())!= null)
                         {
 
-                          read = read + input + "\r";   
+                          read = read + input + "\r";
                              //count++;
                         }
                     }
-               
-                 
+
+
                 }catch(NullPointerException ex){
                      log.AddToDisplay.Display(ex.getMessage(), log.DisplayMessageType.ERROR);
-                }                  
+                }
 
                 if(!read.isEmpty())
                 {
@@ -251,5 +249,4 @@ class ClientThread extends Thread
            log.AddToDisplay.Display(e.getMessage(), log.DisplayMessageType.ERROR);
        }
     }
-    
 }

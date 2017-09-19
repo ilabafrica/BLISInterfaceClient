@@ -167,11 +167,12 @@ public class SYSMEXXS1000i extends Thread{
 	       }
       }
 
-    public void getFromBlis(String barcode)
-     {
+    // public void getFromBlis(String barcode)
+    public static String getFromBlis()
+    {
 
-       getBLISTests(barcode,true);
-
+       // getBLISTests(barcode,true);
+       return getBLISTests();
      }
 
     private static void resetCon()
@@ -189,89 +190,78 @@ public class SYSMEXXS1000i extends Thread{
                    MainForm.btobj.start();
                }*/
     }
-    private static void getBLISTests(String aux_id, boolean flag)
+    // private static void getBLISTests(String aux_id, boolean flag)
+    private static String getBLISTests()
     {
         try
         {
-            String data = BLIS.blis.getSampleData(aux_id,"","",getSpecimenFilter(2), getSpecimenFilter(4));
-            List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
-            SampleList = SampleDataJSON.normaliseResults(SampleList);
-            if(SampleList.size() > 0)
-            {
-                for (int i=0;i<SampleList.size();i++)
-                {
-                       appMode = MODE.SENDING_QUERY;
-                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).aux_id + " to SYSMEX XS 1000i",DisplayMessageType.INFORMATION);
-                       prepare(SampleList.get(i));
-                       AddtoQueue(ENQ);
-                       /*while(appMode != MODE.IDLE)
-                       {
-                           Thread.sleep(100);
-                       }*/
+            // todo: specify the time
+          String data = BLIS.blis.fetchSampleDetails();
 
-                }
-
-            }
-             else
+          log.AddToDisplay.Display(data + " data content",DisplayMessageType.INFORMATION);
+          return data;
+            /*else
               {
-                 // AddtoQueue(null, query);
-                 if(flag)
-                   log.AddToDisplay.Display("Sample with barcode: "+aux_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
-             }
-        }catch(Exception ex)
-        {
-            log.logger.PrintStackTrace(ex);
+                // AddtoQueue(null, query);
+                if(flag)
+                  log.AddToDisplay.Display("Sample with barcode: "+aux_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
+             }*/
+        }catch(Exception ex){
+          log.AddToDisplay.Display(" FAILLED",DisplayMessageType.INFORMATION);
+          log.logger.PrintStackTrace(ex);
         }
+        return null;
      }
+
    private static void AddtoQueue(char value)
    {
-       synchronized(OutQueue)
-        {
-            OutQueue.add(String.valueOf(value));
-            //log.logger.Logger("New message added to sending queue\n"+strData.toString());
-       }
-
+      synchronized(OutQueue)
+      {
+        OutQueue.add(String.valueOf(value));
+        //log.logger.Logger("New message added to sending queue\n"+strData.toString());
+      }
    }
-   private static void prepare(sampledata get)
-   {
-        PatientTest.clear();
-       StringBuffer strData = new StringBuffer();
-       strData.append(STX);
-       StringBuffer strTemp = new StringBuffer();
-       strTemp.append("1H|\\^&|||LIS|||||||P|E1394-97|");
-       strTemp.append(utilities.getSystemDate("yyyyMMddHHmmss"));
-       strTemp.append(CR);
-       strTemp.append(ETX);
-       strData.append(strTemp.toString());
-       strData.append(utilities.getCheckSum(strTemp.toString()));
-       strData.append(CR);
-       strData.append(LF);
-       PatientTest.add(strData.toString());
-       strData = new StringBuffer();
-       strTemp = new StringBuffer();
-       strData.append(STX);
-       strTemp.append("2P|1||");
-       strTemp.append(get.surr_id);
-       strTemp.append("||");
-       strTemp.append(get.name.trim().replaceFirst(" ", "^"));
-       strTemp.append("||");
-       String[] parts = utilities.getNormalizedDate(get.dob,get.partial_dob).split("-");
-       strTemp.append(parts[0]).append(parts[1]).append(parts[2]);
-       strTemp.append("|");
-       strTemp.append(get.sex);
-       strTemp.append("|||||||||||||||||");
-       strTemp.append("OPD");
-       strTemp.append(CR);
-       strTemp.append(ETX);
-       strData.append(strTemp.toString());
-       strData.append(utilities.getCheckSum(strTemp.toString()));
-       strData.append(CR);
-       strData.append(LF);
-       PatientTest.add(strData.toString());
-       String[] testparts = get.measure_id.split(",");
-       int j=3;
-       for(int i=0;i<testparts.length;i++,j++)
-       {
+
+  private static void prepare(sampledata get)
+  {
+      PatientTest.clear();
+      StringBuffer strData = new StringBuffer();
+      strData.append(STX);
+      StringBuffer strTemp = new StringBuffer();
+      strTemp.append("1H|\\^&|||LIS|||||||P|E1394-97|");
+      strTemp.append(utilities.getSystemDate("yyyyMMddHHmmss"));
+      strTemp.append(CR);
+      strTemp.append(ETX);
+      strData.append(strTemp.toString());
+      strData.append(utilities.getCheckSum(strTemp.toString()));
+      strData.append(CR);
+      strData.append(LF);
+      PatientTest.add(strData.toString());
+      strData = new StringBuffer();
+      strTemp = new StringBuffer();
+      strData.append(STX);
+      strTemp.append("2P|1||");
+      strTemp.append(get.surr_id);
+      strTemp.append("||");
+      strTemp.append(get.name.trim().replaceFirst(" ", "^"));
+      strTemp.append("||");
+      String[] parts = utilities.getNormalizedDate(get.dob,get.partial_dob).split("-");
+      strTemp.append(parts[0]).append(parts[1]).append(parts[2]);
+      strTemp.append("|");
+      strTemp.append(get.sex);
+      strTemp.append("|||||||||||||||||");
+      strTemp.append("OPD");
+      strTemp.append(CR);
+      strTemp.append(ETX);
+      strData.append(strTemp.toString());
+      strData.append(utilities.getCheckSum(strTemp.toString()));
+      strData.append(CR);
+      strData.append(LF);
+      PatientTest.add(strData.toString());
+      String[] testparts = get.measure_id.split(",");
+      int j=3;
+      for(int i=0;i<testparts.length;i++,j++)
+      {
             strData = new StringBuffer();
             strTemp = new StringBuffer();
             strData.append(STX);
@@ -335,9 +325,9 @@ public class SYSMEXXS1000i extends Thread{
             MSGTYPE type =getMessageType(message);
             if(type == MSGTYPE.ENQ)
             {
-                AddtoQueue(ACK);
-               ASTMMsgs="";
-               appMode = MODE.RECEIVEING_RESULTS;
+              AddtoQueue(ACK);
+              ASTMMsgs="";
+              appMode = MODE.RECEIVEING_RESULTS;
             }
             else if(type == MSGTYPE.STX)
             {
@@ -353,51 +343,60 @@ public class SYSMEXXS1000i extends Thread{
                 ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(STX)+"[\\d]", "");
                 ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(ETX)+String.valueOf(CR), "");
                 String[] msgParts = ASTMMsgs.trim().split("\r");
-                String pidParts[] = msgParts[1].split("\\|");
-                String speimenIdParts[] = msgParts[3].split("\\|");
-                if(pidParts.length > 5)
+                String firstRecord[] = msgParts[1].split("\\|");
+                if(firstRecord.length > 5)
                 {
-                    // in XS100i sample id is synonimous with patient id - see documentation
-                    String patientid = pidParts[1];
-                    String SampleID = "";
-                    SampleID =  speimenIdParts[2].trim();
-                    int mID=0;
-                    float value = 0;
-                    boolean flag = false;
-                    // might want to use 29 instead of msgParts.length... lets see, they are 34
-                    for(int i=5;i<msgParts.length;i++)
-                    {
-                        // measure id of the instrument, now get mmeasure id of LIS
-                        mID = getMeasureID(msgParts[i].split("\\|")[1]);
-                        if(mID > 0)
-                        {
-                            String rawResult = "";
-                            rawResult = msgParts[i].split("\\|")[5];
-                            int firstIndex = rawResult.indexOf("^");
-                            String result = rawResult.substring(0,firstIndex);
+                  // in XS100i sample id is synonimous with patient id - see documentation
+                  String recordType = firstRecord[0].trim();
+                  String SampleID = "";
+                  int mID=0;
+                  float value = 0;
+                  boolean flag = false;
 
-                            try
-                            {
-                                value = Float.parseFloat(result);
-                            }catch(NumberFormatException e){
-                                try{
-                                value = 0;
-                                }catch(NumberFormatException ex){}
-                            }
-                            if(SaveResults(SampleID, mID,value))
-                            {
-                                flag = true;
-                            }
+                  if (recordType.equalsIgnoreCase("2Q")) {
+                    // extract the query in for and evoke blis for pending stuff of today...
+                    String SampleList = "";
+                    SampleList = getFromBlis();
+                    log.AddToDisplay.Display("\nSamples from ALIS: "+SampleList,DisplayMessageType.INFORMATION);
+
+                  }else{
+                    String speimenIdParts[] = msgParts[3].split("\\|");
+                    SampleID =  speimenIdParts[2].trim();
+
+                    for(int i=5;i<msgParts.length;i++){
+                      // measure id of the instrument, now get mmeasure id of LIS
+                      mID = getMeasureID(msgParts[i].split("\\|")[1]);
+                      if(mID > 0){
+
+                        String rawResult = "";
+                        rawResult = msgParts[i].split("\\|")[5];
+                        int firstIndex = rawResult.indexOf("^");
+                        String result = rawResult.substring(0,firstIndex);
+
+                        try
+                        {
+                          value = Float.parseFloat(result);
+                        }catch(NumberFormatException e){
+                          try{
+                            value = 0;
+                          }catch(NumberFormatException ex){}
                         }
+                        if(SaveResults(SampleID, mID,value))
+                        {
+                          flag = true;
+                        }
+                      }
                     }
-                     if(flag)
-                        {
-                             log.AddToDisplay.Display("\nResults with Code: "+SampleID +" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
-                        }
-                        else
-                        {
-                             log.AddToDisplay.Display("\nSpecimen with Code: "+SampleID +" not Found on BLIS",DisplayMessageType.WARNING);
-                        }
+                  }
+                  // when is this flag applicable
+                  if(flag)
+                  {
+                    log.AddToDisplay.Display("\nResults with Code: "+SampleID +" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
+                  }
+                  else
+                  {
+                    log.AddToDisplay.Display("\nSpecimen with Code: "+SampleID +" not Found on BLIS",DisplayMessageType.WARNING);
+                  }
                 }
                 else
                 {
@@ -406,7 +405,7 @@ public class SYSMEXXS1000i extends Thread{
                 appMode = MODE.IDLE;
                 synchronized(MainForm.set)
                 {
-                    MainForm.set = MainForm.RESET.NOW;
+                  MainForm.set = MainForm.RESET.NOW;
                 }
 
             }
@@ -507,7 +506,6 @@ public class SYSMEXXS1000i extends Thread{
          {
              testIDs.add(equipmentids[i]+";"+blismeasureids[i]);
          }
-
      }
 
     private static String getSpecimenFilter(int whichdata)

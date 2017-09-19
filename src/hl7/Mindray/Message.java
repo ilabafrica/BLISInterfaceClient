@@ -195,12 +195,7 @@ public class Message {
             Messagebuff.append(blocks.CARRIAGE_RETURN);
 
             messages.add(Messagebuff.toString());
-         
         }
-         
-                
-	
-        
         return messages;
     }
     
@@ -222,7 +217,6 @@ public class Message {
              }
              else
              {               
-               
                 sample = new sampledata();            
                 sample.specimen_id = data.get(i).specimen_id;             
                 sample.aux_id = data.get(i).aux_id;
@@ -244,7 +238,6 @@ public class Message {
              }
              
          }
-         
          return results;
     }
     
