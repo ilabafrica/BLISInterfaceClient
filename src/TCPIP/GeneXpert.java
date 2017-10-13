@@ -200,11 +200,11 @@ public class GeneXpert extends Thread{
                    MainForm.btobj.start();
                }*/
     }
-   private static void getBLISTests(String aux_id, boolean flag)
+   private static void getBLISTests(String specimen_id, boolean flag)
      {
          try
          {
-            String data = BLIS.blis.getSampleData(aux_id,"","",getSpecimenFilter(2), getSpecimenFilter(4));
+            String data = BLIS.blis.getSampleData(specimen_id,"","",getSpecimenFilter(2), getSpecimenFilter(4));
             List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
             SampleList = SampleDataJSON.normaliseResults(SampleList);
             if(SampleList.size() > 0)
@@ -212,7 +212,7 @@ public class GeneXpert extends Thread{
                 for (int i=0;i<SampleList.size();i++) 
                 { 
                     appMode = MODE.SENDING_QUERY;                    
-                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).aux_id + " to GeneXpert",DisplayMessageType.INFORMATION);
+                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).specimen_id + " to GeneXpert",DisplayMessageType.INFORMATION);
                        prepare(SampleList.get(i)); 
                        AddtoQueue(ENQ);
                        /*while(appMode != MODE.IDLE)
@@ -231,7 +231,7 @@ public class GeneXpert extends Thread{
                   noDataResponse();
                  if(flag)   
                  {
-                   log.AddToDisplay.Display("Sample with code: "+aux_id +" does not exist in BLIS",DisplayMessageType.ERROR);
+                   log.AddToDisplay.Display("Sample with code: "+specimen_id +" does not exist in BLIS",DisplayMessageType.ERROR);
                  }
              }
          }catch(Exception ex)
@@ -308,7 +308,7 @@ public class GeneXpert extends Thread{
        strTemp.append(utilities.getSystemDate("yyyyMMddHHmmss"));
        strTemp.append(CR);   
        strTemp.append("P|1|||");
-       strTemp.append(get.surr_id);
+       strTemp.append(get.patient_id);
        strTemp.append(CR);        
        String[] testparts = get.test_type_id.split(",");   
        int j=3;
@@ -320,7 +320,7 @@ public class GeneXpert extends Thread{
             strTemp.append("|");
             strTemp.append(i+1);
             strTemp.append("|");
-            strTemp.append(get.aux_id);
+            strTemp.append(get.specimen_id);
             strTemp.append("||^^^");
             strTemp.append(testparts[i]);
             strTemp.append("|R|");

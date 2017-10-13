@@ -31,6 +31,7 @@ import javax.swing.JOptionPane;
 import log.logger;
 import system.*;
 
+
 /**
  *
  * @author Stephen Adjei-Kyei <stephen.adjei.kyei@gmail.com>
@@ -406,7 +407,6 @@ public class MainForm extends javax.swing.JFrame {
                 switch(jlblEquipment.getText())
                 {
                     case "ABX Pentra 80":
-                        log.AddToDisplay.Display("Manual Download from BLIS Sample Code:"+jtxtManualBarcode.getText(),log.DisplayMessageType.TITLE);                     
                        new ABXPentra80().getFromBlis(jtxtManualBarcode.getText());                 
                         break;
                 }
@@ -414,11 +414,9 @@ public class MainForm extends javax.swing.JFrame {
                 switch(jlblEquipment.getText())
                 {
                     case "BT3000 Plus-Chameleon":                        
-                       log.AddToDisplay.Display("Manual Download from BLIS Sample Barcode:"+jtxtManualBarcode.getText(),log.DisplayMessageType.TITLE);                     
                        new TCPIP.BT3000PlusChameleon().getFromBlis(jtxtManualBarcode.getText());
                         break;
                     case "Cobas AmpliPrep":
-                         log.AddToDisplay.Display("Manual Download from BLIS Sample Barcode:"+jtxtManualBarcode.getText(),log.DisplayMessageType.TITLE);                     
                         new CobasAmpliPrep().getFromBlis(jtxtManualBarcode.getText());
                         break;
                 }
@@ -427,7 +425,6 @@ public class MainForm extends javax.swing.JFrame {
                 switch(jlblEquipment.getText())
                 {
                     case "ABX Pentra 60C+":    
-                        log.AddToDisplay.Display("Manual Download from BLIS Sample Barcode:"+jtxtManualBarcode.getText(),log.DisplayMessageType.TITLE);
                      new MSACCESSABXPentra60CPlus().getFromBlis(jtxtManualBarcode.getText());
                         break;
                 }
@@ -460,8 +457,6 @@ public class MainForm extends javax.swing.JFrame {
                 switch(jlblEquipment.getText())
                 {
                     case "ABX Pentra 60C+":  
-                        
-                        log.AddToDisplay.Display("Manual Send to BLIS Sample Barcode:"+jtxtManualBarcode.getText(),log.DisplayMessageType.TITLE);
                         new MSACCESSABXPentra60CPlus().sendToBlis(jtxtManualBarcode.getText());
                         break;
                 }

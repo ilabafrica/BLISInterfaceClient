@@ -231,14 +231,14 @@ public class blis {
          return "";
     }
     // used by sysmex xs1000i
-    public static String saveResults(String specimenID, int measureID, float result,int testTypeID)
+    public static String saveResults(String patientID, int measureID, float result,int testTypeID)
     {
         String data="-1";
         try
         {
             String url = settings.BLIS_URL;
             url = url + "api/saveresults?username="+settings.BLIS_USERNAME + "&password="+settings.BLIS_PASSWORD;
-            url = url + "&specimen_id="+URLEncoder.encode(specimenID,"UTF-8");
+            url = url + "&patient_id="+URLEncoder.encode(patientID,"UTF-8");
             url = url + "&test_type_id="+testTypeID;
             url = url + "&measure_id="+measureID;
             url = url + "&result="+result;

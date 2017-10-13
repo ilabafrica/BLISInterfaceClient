@@ -97,58 +97,53 @@ public class SYSMEXXS1000i extends Thread{
 
   @Override
   public void run() {
-
         try
         {
-            log.AddToDisplay.Display("SYSMEX XS-1000i handler started...", DisplayMessageType.TITLE);
-            if(tcpsettings.SERVER_MODE)
+          log.AddToDisplay.Display("SYSMEX XS-1000i handler started...", DisplayMessageType.TITLE);
+          if(tcpsettings.SERVER_MODE)
+          {
+              log.AddToDisplay.Display("Starting Server socket on port "+tcpsettings.PORT, DisplayMessageType.INFORMATION);
+              welcomeSocket = new ServerSocket(tcpsettings.PORT);
+              log.AddToDisplay.Display("Waiting for Equipment connection...", DisplayMessageType.INFORMATION);
+              log.AddToDisplay.Display("Listening on port "+ tcpsettings.PORT+"...",DisplayMessageType.INFORMATION);
+              connSock = welcomeSocket.accept();
+          }
+          else
+          {
+              log.AddToDisplay.Display("Starting Client socket on IP "+tcpsettings.EQUIPMENT_IP +" on port  "+tcpsettings.PORT, DisplayMessageType.INFORMATION);
+             connSock = new Socket(tcpsettings.EQUIPMENT_IP, tcpsettings.PORT);
+          }
+          log.AddToDisplay.Display("SYSMEX XS-1000i is now Connected...",DisplayMessageType.INFORMATION);
+          first=false;
+          if(!tcpsettings.SERVER_MODE)
+          {
+              connSock.setKeepAlive(true);
+          }
+          ClientThread client = new ClientThread(connSock,"SYSMEX XS-1000i");
+          client.start();
+          String message ;
+          outToEquipment= new DataOutputStream(connSock.getOutputStream());
+           setTestIDs();
+          while(!stopped)
+          {
+            synchronized(OutQueue)
             {
-                log.AddToDisplay.Display("Starting Server socket on port "+tcpsettings.PORT, DisplayMessageType.INFORMATION);
-                welcomeSocket = new ServerSocket(tcpsettings.PORT);
-                log.AddToDisplay.Display("Waiting for Equipment connection...", DisplayMessageType.INFORMATION);
-                log.AddToDisplay.Display("Listening on port "+ tcpsettings.PORT+"...",DisplayMessageType.INFORMATION);
-                connSock = welcomeSocket.accept();
+              while(!OutQueue.isEmpty())
+              {
+                System.out.println("Message found in sending queue");
+                log.AddToDisplay.Display("Message found in sending queue",DisplayMessageType.TITLE);
+                //log.logger.Logger("Message found in sending queue");
+                message =(String) OutQueue.poll();
+                outToEquipment.writeBytes(message);
+                //System.out.println(message+ "sent sucessfully");
+                log.AddToDisplay.Display(message+ "sent successfully",DisplayMessageType.INFORMATION);
+                //log.logger.Logger(message+ "sent sucessfully");
+              }
             }
-            else
-            {
-                log.AddToDisplay.Display("Starting Client socket on IP "+tcpsettings.EQUIPMENT_IP +" on port  "+tcpsettings.PORT, DisplayMessageType.INFORMATION);
-               connSock = new Socket(tcpsettings.EQUIPMENT_IP, tcpsettings.PORT);
-            }
-                log.AddToDisplay.Display("SYSMEX XS-1000i is now Connected...",DisplayMessageType.INFORMATION);
-                first=false;
-                if(!tcpsettings.SERVER_MODE)
-                {
-                    connSock.setKeepAlive(true);
-                }
-                ClientThread client = new ClientThread(connSock,"SYSMEX XS-1000i");
-                client.start();
-                String message ;
-                outToEquipment= new DataOutputStream(connSock.getOutputStream());
-                 setTestIDs();
-                while(!stopped)
-                {
-                    synchronized(OutQueue)
-                    {
-                        while(!OutQueue.isEmpty())
-                        {
-                            System.out.println("Message found in sending queue");
-                            log.AddToDisplay.Display("Message found in sending queue",DisplayMessageType.TITLE);
-                            //log.logger.Logger("Message found in sending queue");
-                            message =(String) OutQueue.poll();
-                            outToEquipment.writeBytes(message);
-                            //System.out.println(message+ "sent sucessfully");
-                            log.AddToDisplay.Display(message+ "sent successfully",DisplayMessageType.INFORMATION);
-                            //log.logger.Logger(message+ "sent sucessfully");
-                        }
-                    }
-
-
-                }
-
-
-         }
-         catch(IOException e)
-         {
+          }
+        }
+        catch(IOException e)
+        {
             if(first)
             {
               if(tcpsettings.SERVER_MODE)
@@ -162,157 +157,142 @@ public class SYSMEXXS1000i extends Thread{
               log.AddToDisplay.Display("SYSMEX XS-1000i client is now disconnected!",DisplayMessageType.WARNING);
               log.logger.Logger(e.getMessage());
             }
-
-
 	       }
       }
 
-    // public void getFromBlis(String barcode)
-    public static String getFromBlis()
-    {
-
-       // getBLISTests(barcode,true);
-       return getBLISTests();
-     }
-
     private static void resetCon()
     {
-        /* if(!tcpsettings.SERVER_MODE)
-               {
-                 stopped = true;
-                 if(null != connSock)
-                 try {
-                     connSock.close();
-                 } catch (IOException ex) {
-                     Logger.getLogger(BT3000PlusChameleon.class.getName()).log(Level.SEVERE, null, ex);
-                 }
-                   MainForm.btobj = new BT3000PlusChameleon();
-                   MainForm.btobj.start();
-               }*/
+      //
     }
-    // private static void getBLISTests(String aux_id, boolean flag)
-    private static String getBLISTests()
+
+  private static String getBLISTests()
+  {
+    try
     {
-        try
-        {
-            // todo: specify the time
-          String data = BLIS.blis.fetchSampleDetails();
+      // todo: specify the time
+      String data = BLIS.blis.fetchSampleDetails();
 
-          log.AddToDisplay.Display(data + " data content",DisplayMessageType.INFORMATION);
-          return data;
-            /*else
-              {
-                // AddtoQueue(null, query);
-                if(flag)
-                  log.AddToDisplay.Display("Sample with barcode: "+aux_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
-             }*/
-        }catch(Exception ex){
-          log.AddToDisplay.Display(" FAILLED",DisplayMessageType.INFORMATION);
-          log.logger.PrintStackTrace(ex);
-        }
-        return null;
-     }
+      log.AddToDisplay.Display(data + " data content",DisplayMessageType.INFORMATION);
 
-   private static void AddtoQueue(char value)
-   {
-      synchronized(OutQueue)
+      List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
+
+      log.AddToDisplay.Display("JSON now object but showing string: "+SampleList,DisplayMessageType.INFORMATION);
+      // todo: normalises not only results but also requests, give it an appropriate name
+      SampleList = SampleDataJSON.normaliseResults(SampleList);
+      if(SampleList.size() > 0)
       {
-        OutQueue.add(String.valueOf(value));
-        //log.logger.Logger("New message added to sending queue\n"+strData.toString());
-      }
-   }
+        for (int i=0;i<SampleList.size();i++)
+        {
+          appMode = MODE.SENDING_QUERY;
+          log.AddToDisplay.Display("Sending test request with specimen ID: "+SampleList.get(i).specimen_id + " to SYSMEX XS 1000i",DisplayMessageType.INFORMATION);
+          prepare(SampleList.get(i));
+          AddtoQueue(ENQ);
+        }
 
+      }else{
+        // AddtoQueue(null, query);
+        log.AddToDisplay.Display("No requests found in ALIS for specified filter",DisplayMessageType.INFORMATION);
+      }
+
+    }catch(Exception ex){
+
+      log.AddToDisplay.Display(" FAILLED",DisplayMessageType.INFORMATION);
+      log.logger.PrintStackTrace(ex);
+    }
+    return null;
+  }
+
+  private static void AddtoQueue(char value)
+  {
+    synchronized(OutQueue)
+    {
+      OutQueue.add(String.valueOf(value));
+    }
+  }
+
+  // todo: the rest of the things might also need tobe static void like so
   private static void prepare(sampledata get)
   {
-      PatientTest.clear();
-      StringBuffer strData = new StringBuffer();
-      strData.append(STX);
-      StringBuffer strTemp = new StringBuffer();
-      strTemp.append("1H|\\^&|||LIS|||||||P|E1394-97|");
-      strTemp.append(utilities.getSystemDate("yyyyMMddHHmmss"));
-      strTemp.append(CR);
-      strTemp.append(ETX);
-      strData.append(strTemp.toString());
-      strData.append(utilities.getCheckSum(strTemp.toString()));
-      strData.append(CR);
-      strData.append(LF);
-      PatientTest.add(strData.toString());
-      strData = new StringBuffer();
-      strTemp = new StringBuffer();
-      strData.append(STX);
-      strTemp.append("2P|1||");
-      strTemp.append(get.surr_id);
-      strTemp.append("||");
-      strTemp.append(get.name.trim().replaceFirst(" ", "^"));
-      strTemp.append("||");
-      String[] parts = utilities.getNormalizedDate(get.dob,get.partial_dob).split("-");
-      strTemp.append(parts[0]).append(parts[1]).append(parts[2]);
-      strTemp.append("|");
-      strTemp.append(get.sex);
-      strTemp.append("|||||||||||||||||");
-      strTemp.append("OPD");
-      strTemp.append(CR);
-      strTemp.append(ETX);
-      strData.append(strTemp.toString());
-      strData.append(utilities.getCheckSum(strTemp.toString()));
-      strData.append(CR);
-      strData.append(LF);
-      PatientTest.add(strData.toString());
-      String[] testparts = get.measure_id.split(",");
-      int j=3;
-      for(int i=0;i<testparts.length;i++,j++)
+    PatientTest.clear();
+    StringBuffer strData = new StringBuffer();
+    strData.append(STX);
+    StringBuffer strTemp = new StringBuffer();
+    strTemp.append("1H|^~\\&|||||||||||A.2|");
+    strTemp.append(utilities.getSystemDate("yyyyMMddHHmmss"));
+    strTemp.append(CR);
+    strTemp.append(ETX);
+    strData.append(strTemp.toString());
+    strData.append(utilities.getCheckSum(strTemp.toString()));
+    strData.append(CR);
+    strData.append(LF);
+    log.AddToDisplay.Display("Header to IPU: "+strData.toString(),DisplayMessageType.INFORMATION);
+    PatientTest.add(strData.toString());
+    strData = new StringBuffer();
+    strTemp = new StringBuffer();
+    strData.append(STX);
+    strTemp.append("2P|1||");
+    strTemp.append(get.patient_id);// what is this
+    strTemp.append("||");
+    strTemp.append(get.patient_name.trim().replaceFirst(" ", "^"));
+    strTemp.append("||");
+    String[] parts = utilities.getNormalizedDate(get.dob).split("-");
+    strTemp.append(parts[0]).append(parts[1]).append(parts[2]);
+    strTemp.append("|");
+    strTemp.append(get.gender);
+    strTemp.append("|||||||||||||||||");
+    // strTemp.append("OPD");
+    strTemp.append(CR);
+    strTemp.append(ETX);
+    strData.append(strTemp.toString());
+    strData.append(utilities.getCheckSum(strTemp.toString()));
+    strData.append(CR);
+    strData.append(LF);
+    log.AddToDisplay.Display("Patient Record to IPU: "+strData.toString(),DisplayMessageType.INFORMATION);
+    PatientTest.add(strData.toString());
+    strData = new StringBuffer();
+    strTemp = new StringBuffer();
+    strData.append(STX);
+    strTemp.append("4OBR");
+    strTemp.append("|1|");
+    strTemp.append(get.specimen_id);
+    strTemp.append("|WBC~RBC~HGB~HCT~MCV~MCH~PLT|");
+    strTemp.append("||");
+    strTemp.append(get.time_collected);
+    strTemp.append("||||L|||");
+    strTemp.append(get.time_accepted);
+    strTemp.append("|||||||||||||");
+    strTemp.append(CR);
+    strTemp.append(ETX);
+    strData.append(strTemp.toString());
+    strData.append(utilities.getCheckSum(strTemp.toString()));
+    strData.append(CR);
+    strData.append(LF);
+    log.AddToDisplay.Display("Order Record to IPU: "+strData.toString(),DisplayMessageType.INFORMATION);
+    PatientTest.add(strData.toString());
+
+    strData = new StringBuffer();
+    strTemp = new StringBuffer();
+    strData.append(STX);
+    strTemp.append("L|1||1|4");
+    strTemp.append(CR);
+    strTemp.append(ETX);
+    strData.append(strTemp.toString());
+    strData.append(utilities.getCheckSum(strTemp.toString()));
+    strData.append(CR);
+    strData.append(LF);
+
+    PatientTest.add(strData.toString());
+  }
+
+    private static void AddtoQueue(String data)
+    {
+      synchronized(OutQueue)
       {
-            strData = new StringBuffer();
-            strTemp = new StringBuffer();
-            strData.append(STX);
-           if(j > 7)
-               j=0;
-            strTemp.append(j);
-            strTemp.append("O");
-            strTemp.append("|");
-            strTemp.append(i+1);
-            strTemp.append("|");
-            strTemp.append(get.aux_id);
-            strTemp.append("||");
-            strTemp.append(getEquipmentID(testparts[i]));
-            strTemp.append("|||");
-            strTemp.append(utilities.getSystemDate("yyyyMMddHHmmss"));
-            strTemp.append("||||||||||||||||||F");
-            strTemp.append(CR);
-            strTemp.append(ETX);
-            strData.append(strTemp.toString());
-            strData.append(utilities.getCheckSum(strTemp.toString()));
-            strData.append(CR);
-            strData.append(LF);
-            PatientTest.add(strData.toString());
-       }
-            strData = new StringBuffer();
-            strTemp = new StringBuffer();
-            strData.append(STX);
-            strTemp.append(j);
-            strTemp.append("L");
-            strTemp.append("|");
-            strTemp.append(1);
-            strTemp.append("|N");
-            strTemp.append(CR);
-            strTemp.append(ETX);
-            strData.append(strTemp.toString());
-            strData.append(utilities.getCheckSum(strTemp.toString()));
-            strData.append(CR);
-            strData.append(LF);
-            PatientTest.add(strData.toString());
-
-   }
-
-      private static void AddtoQueue(String data)
-      {
-
-              synchronized(OutQueue)
-               {
-                   OutQueue.add(data);
-                   log.logger.Logger("New message added to sending queue\n"+data);
-               }
+        OutQueue.add(data);
+        log.logger.Logger("New message added to sending queue\n"+data);
       }
+    }
+
     public static void handleMessage(String message)
     {
          synchronized(MainForm.set)
@@ -339,39 +319,40 @@ public class SYSMEXXS1000i extends Thread{
             else if (type == MSGTYPE.EOT)
             {
                 //AddtoQueue(ACK);
-                //todo handle results
                 ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(STX)+"[\\d]", "");
                 ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(ETX)+String.valueOf(CR), "");
                 String[] msgParts = ASTMMsgs.trim().split("\r");
                 String firstRecord[] = msgParts[1].split("\\|");
                 if(firstRecord.length > 5)
                 {
-                  // in XS100i sample id is synonimous with patient id - see documentation
                   String recordType = firstRecord[0].trim();
-                  String SampleID = "";
+                  String PatientID = "";
                   int mID=0;
                   float value = 0;
                   boolean flag = false;
+                  // if not functional really hoping to sort it out though
+                  if (recordType.equalsIgnoreCase("Q")) {
+                    log.AddToDisplay.Display("\nIdentified as a query for alis! ",DisplayMessageType.INFORMATION);
 
-                  if (recordType.equalsIgnoreCase("2Q")) {
-                    // extract the query in for and evoke blis for pending stuff of today...
-                    String SampleList = "";
-                    SampleList = getFromBlis();
-                    log.AddToDisplay.Display("\nSamples from ALIS: "+SampleList,DisplayMessageType.INFORMATION);
+                    // this command initiates and fetching of pending requests from ALIS and sends to IPU(Sysmex Software[api])
+                    getBLISTests();
+                    log.AddToDisplay.Display("\nSamples from ALIS Sent to IPU",DisplayMessageType.INFORMATION);
 
                   }else{
-                    String speimenIdParts[] = msgParts[3].split("\\|");
-                    SampleID =  speimenIdParts[2].trim();
+                    String patientIdParts[] = msgParts[1].split("\\|");
+                    // patient Id
+                    PatientID =  patientIdParts[4].trim();
 
-                    for(int i=5;i<msgParts.length;i++){
+                    // restrict string manupulation to actual results only
+                    for(int i=5;i<29;i++){
                       // measure id of the instrument, now get mmeasure id of LIS
                       mID = getMeasureID(msgParts[i].split("\\|")[1]);
                       if(mID > 0){
 
                         String rawResult = "";
-                        rawResult = msgParts[i].split("\\|")[5];
-                        int firstIndex = rawResult.indexOf("^");
-                        String result = rawResult.substring(0,firstIndex);
+                        // actual result
+                        rawResult = msgParts[i].split("\\|")[3];
+                        String result = rawResult;
 
                         try
                         {
@@ -381,21 +362,21 @@ public class SYSMEXXS1000i extends Thread{
                             value = 0;
                           }catch(NumberFormatException ex){}
                         }
-                        if(SaveResults(SampleID, mID,value))
+                        if(SaveResults(PatientID, mID,value))
                         {
                           flag = true;
                         }
                       }
                     }
-                  }
-                  // when is this flag applicable
-                  if(flag)
-                  {
-                    log.AddToDisplay.Display("\nResults with Code: "+SampleID +" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
-                  }
-                  else
-                  {
-                    log.AddToDisplay.Display("\nSpecimen with Code: "+SampleID +" not Found on BLIS",DisplayMessageType.WARNING);
+                    // when is this flag applicable
+                    if(flag)
+                    {
+                      log.AddToDisplay.Display("\nResults with Code: "+PatientID +" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
+                    }
+                    else
+                    {
+                      log.AddToDisplay.Display("\nSpecimen with Code: "+PatientID +" not Found on BLIS",DisplayMessageType.WARNING);
+                    }
                   }
                 }
                 else
@@ -411,7 +392,7 @@ public class SYSMEXXS1000i extends Thread{
             }
             else if (type == MSGTYPE.NAK)
             {
-                 log.AddToDisplay.Display("NAK Response from Analyzer",DisplayMessageType.ERROR);
+              log.AddToDisplay.Display("NAK Response from Analyzer",DisplayMessageType.ERROR);
             }
             else if(type == MSGTYPE.ACK)
             {
@@ -419,26 +400,20 @@ public class SYSMEXXS1000i extends Thread{
               {
                   if(PatientTest.size()>0)
                   {
-                      AddtoQueue(PatientTest.poll());
-                      /*while(PatientTest.size() > 0)
-                      {
-                          AddtoQueue(PatientTest.poll());
-                      }*/
-                      //AddtoQueue(EOT);
+                    AddtoQueue(PatientTest.poll());
                   }
                   else
                   {
-                      AddtoQueue(EOT);
-                      Thread.sleep(500);
-                      appMode = MODE.IDLE;
-                      synchronized(MainForm.set)
-                      {
-                          MainForm.set = MainForm.RESET.NOW;
-                      }
+                    AddtoQueue(EOT);
+                    Thread.sleep(500);
+                    appMode = MODE.IDLE;
+                    synchronized(MainForm.set)
+                    {
+                      MainForm.set = MainForm.RESET.NOW;
+                    }
                   }
               }
             }
-
         }catch(Exception ex)
         {
             log.AddToDisplay.Display("Processing Error Occured!",DisplayMessageType.ERROR);
@@ -490,9 +465,7 @@ public class SYSMEXXS1000i extends Thread{
                     }
                 }
         }
-
         return type;
-
     }
 
      private void setTestIDs()
@@ -549,7 +522,7 @@ public class SYSMEXXS1000i extends Thread{
 
          return equipmentID;
      }
- // barcode is test id in this case
+
   private static boolean SaveResults(String barcode,int MeasureID, float value)
   {
     boolean flag = false;
@@ -557,7 +530,7 @@ public class SYSMEXXS1000i extends Thread{
     // todo: need a dynamic way of handling it!
     if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,22)))
     {
-        flag = true;
+      flag = true;
     }
    return flag;
    }

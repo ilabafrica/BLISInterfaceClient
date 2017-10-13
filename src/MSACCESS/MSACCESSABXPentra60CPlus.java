@@ -180,31 +180,31 @@ public class MSACCESSABXPentra60CPlus  extends Thread {
          
          return measureid;
      }
-     private void getBLISTests(String aux_id, boolean flag)
+     private void getBLISTests(String specimen_id, boolean flag)
      {
          try
          {
-         String data = BLIS.blis.getTestData(getSpecimenFilter(2), getSpecimenFilter(1),aux_id);
+         String data = BLIS.blis.getTestData(getSpecimenFilter(2), getSpecimenFilter(1),specimen_id);
          List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
          if(SampleList.size() > 0)
          {            
              for (int i=0;i<SampleList.size();i++) 
              {                 
-                 if(!con.testExist(SampleList.get(i).aux_id))
+                 if(!con.testExist(SampleList.get(i).specimen_id))
                  {
                     // log.AddToDisplay.Display(SampleList.size()+" result(s) test found in BLIS!",DisplayMessageType.INFORMATION);
                      //log.AddToDisplay.Display("Sending test to Analyzer",DisplayMessageType.INFORMATION);
-                     log.AddToDisplay.Display("Sending test with BARCODE: "+SampleList.get(i).aux_id + " to Analyzer ABX Pentra 60 C+",DisplayMessageType.INFORMATION);
+                     log.AddToDisplay.Display("Sending test with BARCODE: "+SampleList.get(i).specimen_id + " to Analyzer ABX Pentra 60 C+",DisplayMessageType.INFORMATION);
                      if(saveToPentra(SampleList.get(i)))
                      {
-                         addToQueue(SampleList.get(i).aux_id);
+                         addToQueue(SampleList.get(i).specimen_id);
                          log.AddToDisplay.Display("Test sent sucessfully",DisplayMessageType.INFORMATION);
                      }
                  }
                  else
                  {
                      if(flag)                         
-                         log.AddToDisplay.Display("Sample with barcode: "+aux_id +" already exist in Analyzer",DisplayMessageType.INFORMATION);
+                         log.AddToDisplay.Display("Sample with barcode: "+specimen_id +" already exist in Analyzer",DisplayMessageType.INFORMATION);
                  }
              }
              
@@ -212,7 +212,7 @@ public class MSACCESSABXPentra60CPlus  extends Thread {
           else
            {
               if(flag)                         
-                log.AddToDisplay.Display("Sample with barcode: "+aux_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
+                log.AddToDisplay.Display("Sample with barcode: "+specimen_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
           }
          }catch(Exception ex)
          {
@@ -459,7 +459,7 @@ public class MSACCESSABXPentra60CPlus  extends Thread {
             while((rs!=null) && (rs.next()))
             {
                 r = new Result();
-                r.aux_id = barcode;
+                r.specimen_id = barcode;
                 r.equipmentID = Integer.parseInt(rs.getString("Hemato"));
                 r.result = Float.parseFloat(rs.getString("HMT_VAL"));
                 
@@ -489,13 +489,13 @@ public class MSACCESSABXPentra60CPlus  extends Thread {
              String sql = "insert into tmpWorkList(PATIENT,OPERATOR,NO_ID,SampleMode,SAMPLING_DATE,Test,Type,VETO,"
                      + "COLLECTING_DATE,PRESCRIPTOR,SERVICE,Mode,IDENTITY) values("
                     + "'"+patientid+"',1,"
-                    + "'"+ sample.aux_id+"',"
+                    + "'"+ sample.specimen_id+"',"
                     + "'1',"                    
                     + "NOW(),"
                     + "2,1,0,NOW(),"
                     + "'"+doctorid+"',"
                      + "1,1,"
-                     + "'"+sample.name.toUpperCase(Locale.ENGLISH)+"')";
+                     + "'"+sample.patient_name.toUpperCase(Locale.ENGLISH)+"')";
             stmt.executeUpdate(sql);
             success = true;
             con.close();
@@ -520,11 +520,11 @@ public class MSACCESSABXPentra60CPlus  extends Thread {
             // Create an SQL statement.
             Statement stmt = con.createStatement();
             // Fetch table
-            String sql = "insert into PATIENT(IDENT,BIRTHDATE,SEX,PATIENT_ID) values("
-                    + "'"+sample.name.toUpperCase(Locale.ENGLISH)+"',"
-                    + "'"+ system.utilities.getNormalizedDate(sample.dob, sample.partial_dob)+"',"
-                    + "'"+sample.sex+"',"
-                    + "'"+sample.surr_id+"'"
+            String sql = "insert into PATIENT(IDENT,BIRTHDATE,GENDER,PATIENT_ID) values("
+                    + "'"+sample.patient_name.toUpperCase(Locale.ENGLISH)+"',"
+                    + "'"+ system.utilities.getNormalizedDate(sample.dob)+"',"
+                    + "'"+sample.gender+"',"
+                    + "'"+sample.patient_id+"'"
                     + ")";
             stmt.executeUpdate(sql);
             

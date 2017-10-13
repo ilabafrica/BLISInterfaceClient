@@ -51,6 +51,8 @@ public class SampleDataJSON {
             log.AddToDisplay.Display(ex.getMessage(),DisplayMessageType.ERROR);
             log.logger.Logger(ex.getMessage());
         }
+// convert to string
+log.AddToDisplay.Display("object data looks like so: "+ SampleList, DisplayMessageType.INFORMATION);
         return SampleList;
     }
 

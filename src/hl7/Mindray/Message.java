@@ -148,13 +148,13 @@ public class Message {
                 if(dsp == 2 )
                     Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).specimen_id).append("|||"); 
                 else if(dsp == 3 )
-                    Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).name).append("|||"); 
+                    Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).patient_name).append("|||"); 
                 else if(dsp == 4 ) 
-                    Messagebuff.append("DSP|").append(dsp).append("||").append(utilities.getHL7Date(normalisedResults.get(k).dob,normalisedResults.get(k).partial_dob, "yyyyMMddHHmmss")).append("|||"); 
+                    Messagebuff.append("DSP|").append(dsp).append("||").append(utilities.getHL7Date(normalisedResults.get(k).dob,normalisedResults.get(k).dob, "yyyyMMddHHmmss")).append("|||"); 
                 else if(dsp == 5 )
-                    Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).sex).append("|||"); 
+                    Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).gender).append("|||"); 
                 else if(dsp == 21 )
-                    Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).aux_id).append("|||"); 
+                    Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).specimen_id).append("|||"); 
                 else if(dsp == 22 )
                     Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).specimen_type_id.split(",")[0]).append("|||"); 
                 else if(dsp == 23 )
@@ -162,7 +162,7 @@ public class Message {
                 else if(dsp == 24 )
                     Messagebuff.append("DSP|").append(dsp).append("||").append("N").append("|||"); 
                 else if(dsp == 26 )
-                    Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).specimentype.split(",")[0]).append("|||"); 
+                    Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).specimen_type_name.split(",")[0]).append("|||"); 
                 else if(dsp == 27 )
                     Messagebuff.append("DSP|").append(dsp).append("||").append(normalisedResults.get(k).doctor).append("|||"); 
                 else if(dsp == 29 )
@@ -199,46 +199,40 @@ public class Message {
         return messages;
     }
     
+  // todo: change name to normaliseResponse since it can be results from IPU or Sample information from ALIS
     public List<sampledata> normaliseResults(List<sampledata> data)
     {
-         List<sampledata> results = new ArrayList<>();
-         sampledata sample  = null;
-         int sameid = -1; 
-         for(int i=0;i<data.size();i++)
-         {   
-             sameid = inResults(results, data.get(i).specimen_id);
-             if( sameid > -1)
-             {
-                results.get(sameid).measure_id  = results.get(sameid).measure_id + "," + data.get(i).measure_id;
-                results.get(sameid).testname  = results.get(sameid).testname + "," + data.get(i).testname;
-                results.get(sameid).specimentype  = results.get(sameid).specimentype + "," + data.get(i).specimentype;
-                results.get(sameid).specimen_type_id  = results.get(sameid).specimen_type_id + "," + data.get(i).specimen_type_id;
-                
-             }
-             else
-             {               
-                sample = new sampledata();            
-                sample.specimen_id = data.get(i).specimen_id;             
-                sample.aux_id = data.get(i).aux_id;
-                sample.date_collected = data.get(i).date_collected;
-                sample.date_recvd = data.get(i).date_recvd;
-                sample.dob = data.get(i).dob;
-                sample.doctor = data.get(i).doctor;
-                sample.name = data.get(i).name;
-                //sample.result = data.get(i).result; results not needed for minday hl7 messages
-                sample.sex = data.get(i).sex;
-                sample.surr_id = data.get(i).surr_id;
-                sample.specimentype = data.get(i).specimentype;
-                sample.specimen_type_id = data.get(i).specimen_type_id;
-                sample.test_type_id = data.get(i).test_type_id;
-                sample.testname = data.get(i).testname;
-                sample.measure_id = data.get(i).measure_id;
-                sample.partial_dob = data.get(i).partial_dob;
-                results.add(sample);
-             }
-             
-         }
-         return results;
+      List<sampledata> results = new ArrayList<>();
+      sampledata sample  = null;
+      int sameid = -1; 
+      for(int i=0;i<data.size();i++)
+      {   
+        sameid = inResults(results, data.get(i).specimen_id);
+        if( sameid > -1)
+        {
+          results.get(sameid).measure_id  = results.get(sameid).measure_id + "," + data.get(i).measure_id;
+          results.get(sameid).test_type_name  = results.get(sameid).test_type_name + "," + data.get(i).test_type_name;
+          results.get(sameid).specimen_type_name  = results.get(sameid).specimen_type_name + "," + data.get(i).specimen_type_name;
+          results.get(sameid).specimen_type_id  = results.get(sameid).specimen_type_id + "," + data.get(i).specimen_type_id;
+        }
+        else
+        {
+          sample = new sampledata();
+          sample.specimen_id = data.get(i).specimen_id;
+          sample.specimen_type_name = data.get(i).specimen_type_name;
+          sample.specimen_type_id = data.get(i).specimen_type_id;
+          sample.time_collected = data.get(i).time_collected;
+          sample.time_accepted = data.get(i).time_accepted;
+          sample.patient_id = data.get(i).patient_id;
+          sample.patient_name = data.get(i).patient_name;
+          sample.dob = data.get(i).dob;
+          sample.gender = data.get(i).gender;
+          sample.test_type_id = data.get(i).test_type_id;
+          sample.doctor = data.get(i).doctor;
+          results.add(sample);
+        }
+      }
+      return results;
     }
     
     private int inResults(List<sampledata> data, String specimenid)

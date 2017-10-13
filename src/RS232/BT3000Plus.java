@@ -113,32 +113,32 @@ public class BT3000Plus extends Thread {
     }
     
     
-    private void getBLISTests(String aux_id, boolean flag)
+    private void getBLISTests(String specimen_id, boolean flag)
      {
          try
          {
-         String data = BLIS.blis.getTestData(getSpecimenFilter(2), "",aux_id,settings.POOL_DAY);
+         String data = BLIS.blis.getTestData(getSpecimenFilter(2), "",specimen_id,settings.POOL_DAY);
          List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
          SampleList = SampleDataJSON.normaliseResults(SampleList);
          if(SampleList.size() > 0)
          {            
              for (int i=0;i<SampleList.size();i++) 
              {                 
-                 if(!testExist(SampleList.get(i).aux_id))
+                 if(!testExist(SampleList.get(i).specimen_id))
                  {
                     // log.AddToDisplay.Display(SampleList.size()+" result(s) test found in BLIS!",DisplayMessageType.INFORMATION);
                      //log.AddToDisplay.Display("Sending test to Analyzer",DisplayMessageType.INFORMATION);
-                     log.AddToDisplay.Display("Sending test with CODE: "+SampleList.get(i).aux_id + " to Analyzer BT3000 Plus",DisplayMessageType.INFORMATION);
+                     log.AddToDisplay.Display("Sending test with CODE: "+SampleList.get(i).specimen_id + " to Analyzer BT3000 Plus",DisplayMessageType.INFORMATION);
                      if(sendTesttoAnalyzer(SampleList.get(i)))
                      {
-                         addToQueue(SampleList.get(i).aux_id);
+                         addToQueue(SampleList.get(i).specimen_id);
                          log.AddToDisplay.Display("Test sent sucessfully",DisplayMessageType.INFORMATION);
                      }
                  }
                  else
                  {
                      if(flag)                         
-                         log.AddToDisplay.Display("Sample with code: "+aux_id +" already exist in Analyzer",DisplayMessageType.INFORMATION);
+                         log.AddToDisplay.Display("Sample with code: "+specimen_id +" already exist in Analyzer",DisplayMessageType.INFORMATION);
                  }
              }
              
@@ -146,7 +146,7 @@ public class BT3000Plus extends Thread {
           else
            {
               if(flag)                         
-                log.AddToDisplay.Display("Sample with code: "+aux_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
+                log.AddToDisplay.Display("Sample with code: "+specimen_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
           }
          }catch(Exception ex)
          {
@@ -565,7 +565,7 @@ public class BT3000Plus extends Thread {
     private static String getBT3000PlusPatientString(sampledata patient)
     {
       StringBuilder data = new StringBuilder();
-      data.append(padString(patient.aux_id,15," "));
+      data.append(padString(patient.specimen_id,15," "));
       data.append("T");
       data.append(getSampleCode(patient.specimen_type_id.split(",")[0]));
       data.append("N");

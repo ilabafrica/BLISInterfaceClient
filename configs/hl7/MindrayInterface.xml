@@ -93,7 +93,7 @@
 						<format>yyyyMMddHHmmss</format>
 					</field>
 					<field>
-						<name>sex</name>
+						<name>gender</name>
 						<position>8</position>
 						<datatype>Stirng</datatype>
 					</field>

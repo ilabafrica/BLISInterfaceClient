@@ -198,11 +198,11 @@ public class CobasAmpliPrep extends Thread{
                    MainForm.btobj.start();
                }*/
     }
-   private static void getBLISTests(String aux_id, boolean flag)
+   private static void getBLISTests(String specimen_id, boolean flag)
      {
          try
          {
-            String data = BLIS.blis.getSampleData(aux_id,"","",getSpecimenFilter(2), getSpecimenFilter(4));
+            String data = BLIS.blis.getSampleData(specimen_id,"","",getSpecimenFilter(2), getSpecimenFilter(4));
             List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
             SampleList = SampleDataJSON.normaliseResults(SampleList);
             if(SampleList.size() > 0)
@@ -210,7 +210,7 @@ public class CobasAmpliPrep extends Thread{
                 for (int i=0;i<SampleList.size();i++) 
                 {     
                        appMode = MODE.SENDING_QUERY;
-                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).aux_id + " to BT 300 PLUS Chameleon",DisplayMessageType.INFORMATION);
+                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).specimen_id + " to BT 300 PLUS Chameleon",DisplayMessageType.INFORMATION);
                        prepare(SampleList.get(i)); 
                        AddtoQueue(ENQ);
                        /*while(appMode != MODE.IDLE)
@@ -225,7 +225,7 @@ public class CobasAmpliPrep extends Thread{
               {
                  // AddtoQueue(null, query);
                  if(flag)                         
-                   log.AddToDisplay.Display("Sample with barcode: "+aux_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
+                   log.AddToDisplay.Display("Sample with barcode: "+specimen_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
              }
          }catch(Exception ex)
          {
@@ -260,14 +260,14 @@ public class CobasAmpliPrep extends Thread{
        strTemp = new StringBuffer();       
        strData.append(STX);      
        strTemp.append("2P|1||");
-       strTemp.append(get.surr_id);
+       strTemp.append(get.patient_id);
        strTemp.append("||");
-       strTemp.append(get.name.trim().replaceFirst(" ", "^"));
+       strTemp.append(get.patient_name.trim().replaceFirst(" ", "^"));
        strTemp.append("||");
-       String[] parts = utilities.getNormalizedDate(get.dob,get.partial_dob).split("-");
+       String[] parts = utilities.getNormalizedDate(get.dob).split("-");
        strTemp.append(parts[0]).append(parts[1]).append(parts[2]);
        strTemp.append("|");
-       strTemp.append(get.sex);
+       strTemp.append(get.gender);
        strTemp.append("|||||||||||||||||");          
        strTemp.append("LAB");
        strTemp.append(CR);
@@ -291,7 +291,7 @@ public class CobasAmpliPrep extends Thread{
             strTemp.append("|");
             strTemp.append(i+1);
             strTemp.append("|");
-            strTemp.append(get.aux_id);
+            strTemp.append(get.specimen_id);
             strTemp.append("||");
             strTemp.append(getEquipmentID(testparts[i]));
             strTemp.append("|||");
