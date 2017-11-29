@@ -66,10 +66,12 @@ public class MainForm extends javax.swing.JFrame {
     ABXPentra80 pentra80Obj = null;
     CobasAmpliPrep cobasObj = null;
     MindrayBC3600 minbc3600obj = null;
+    HumaCount60TS humcnt60tsobj = null;
     GeneXpert expobj = null;
     SYSMEXXT2000i sys2000iObj = null;
     FlexorE flexObj = null;
     SYSMEXXS1000i sys1000iObj = null;
+    SYSMEXPOCH100i sys100iObj = null;
    //public static boolean reset = false;
    public static enum RESET
    {
@@ -482,6 +484,9 @@ public class MainForm extends javax.swing.JFrame {
                       case "MINDRAY BC 3600":                        
                         minbc3600obj.Stop();
                         break;
+                      case "HUMACOUNT 60TS":                        
+                        humcnt60tsobj.Stop();
+                        break;
                       case "BT3000 PLUS-CHAMELEON":
                           btRSobj.Stop();
                           break;
@@ -522,8 +527,11 @@ public class MainForm extends javax.swing.JFrame {
                     case "SYSMEX XT-2000I":
                         sys2000iObj.Stop();
                         break;
-                    case "SYSMEX XS-1000I":                        
+                    case "SYSMEX XS-1000I":
                         sys1000iObj.Stop();
+                        break;
+                    case "SYSMEX POCH-100I":
+                        sys100iObj.Stop();
                         break;
                 }
                 break;
@@ -568,6 +576,10 @@ public class MainForm extends javax.swing.JFrame {
                     case "MINDRAY BC 3600":
                         minbc3600obj = new MindrayBC3600();
                         minbc3600obj.start();
+                        break;     
+                    case "HUMACOUNT 60TS":
+                        humcnt60tsobj = new HumaCount60TS();
+                        humcnt60tsobj.start();
                         break;     
                     case "BT3000 PLUS-CHAMELEON":
                           btRSobj = new RS232.BT3000PlusChameleon();
@@ -620,6 +632,10 @@ public class MainForm extends javax.swing.JFrame {
                     case "SYSMEX XS-1000I":                        
                         sys1000iObj = new SYSMEXXS1000i();
                         sys1000iObj.start();
+                        break;
+                    case "SYSMEX POCH-100I":                        
+                        sys100iObj = new SYSMEXPOCH100i();
+                        sys100iObj.start();
                         break;
                 }
                 break;

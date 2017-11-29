@@ -19,12 +19,13 @@ import java.util.logging.Logger;
 import system.SampleDataJSON;
 import system.settings;
 import system.utilities;
+import java.text.DecimalFormat;
 import ui.MainForm;
 
 /**
  *
  */
-public class SYSMEXXS1000i extends Thread{
+public class SYSMEXPOCH100i extends Thread{
 
   String read;
   boolean first =true;
@@ -89,7 +90,7 @@ public class SYSMEXXS1000i extends Thread{
               connSock.close();
           if(null !=welcomeSocket)
                welcomeSocket.close();
-           log.AddToDisplay.Display("SYSMEX XS-1000i handler stopped", DisplayMessageType.TITLE);
+           log.AddToDisplay.Display("SYSMEX pocH-100i handler stopped", DisplayMessageType.TITLE);
       } catch (IOException ex) {
           log.logger.Logger(ex.getMessage());
       }
@@ -99,7 +100,7 @@ public class SYSMEXXS1000i extends Thread{
   public void run() {
         try
         {
-          log.AddToDisplay.Display("SYSMEX XS-1000i handler started...", DisplayMessageType.TITLE);
+          log.AddToDisplay.Display("SYSMEX pocH-100i handler started...", DisplayMessageType.TITLE);
           if(tcpsettings.SERVER_MODE)
           {
               log.AddToDisplay.Display("Starting Server socket on port "+tcpsettings.PORT, DisplayMessageType.INFORMATION);
@@ -113,13 +114,13 @@ public class SYSMEXXS1000i extends Thread{
               log.AddToDisplay.Display("Starting Client socket on IP "+tcpsettings.EQUIPMENT_IP +" on port  "+tcpsettings.PORT, DisplayMessageType.INFORMATION);
              connSock = new Socket(tcpsettings.EQUIPMENT_IP, tcpsettings.PORT);
           }
-          log.AddToDisplay.Display("SYSMEX XS-1000i is now Connected...",DisplayMessageType.INFORMATION);
+          log.AddToDisplay.Display("SYSMEX pocH-100i is now Connected...",DisplayMessageType.INFORMATION);
           first=false;
           if(!tcpsettings.SERVER_MODE)
           {
               connSock.setKeepAlive(true);
           }
-          ClientThread client = new ClientThread(connSock,"SYSMEX XS-1000i");
+          ClientThread client = new ClientThread(connSock,"SYSMEX pocH-100i");
           client.start();
           String message ;
           outToEquipment= new DataOutputStream(connSock.getOutputStream());
@@ -154,7 +155,7 @@ public class SYSMEXXS1000i extends Thread{
             }
             else
             {
-              log.AddToDisplay.Display("SYSMEX XS-1000i client is now disconnected!",DisplayMessageType.WARNING);
+              log.AddToDisplay.Display("SYSMEX pocH-100i client is now disconnected!",DisplayMessageType.WARNING);
               log.logger.Logger(e.getMessage());
             }
 	       }
@@ -207,74 +208,52 @@ public class SYSMEXXS1000i extends Thread{
           }
           else if (type == MSGTYPE.EOT)
           {
-              ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(STX)+"[\\d]", "");
-              ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(ETX)+String.valueOf(CR), "");
-              String[] msgParts = ASTMMsgs.trim().split("\r");
-              String firstRecord[] = msgParts[1].split("\\|");
-              if(firstRecord.length > 5)
-              {
-                String recordType = firstRecord[0].trim();
-                String PatientID = "";
-                int mID=0;
-                float value = 0;
-                boolean flag = false;
-                // if not functional really hoping to sort it out though
-                if (recordType.equalsIgnoreCase("Q")) {
-                  log.AddToDisplay.Display("\nIdentified as a query for alis! ",DisplayMessageType.INFORMATION);
+            ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(STX)+"[\\d]", "");
+            ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(ETX), "");
+            String[] msgParts = ASTMMsgs.trim().split("\r");
+            int mID=0;
+            float value = 0;
+            boolean flag = false;
+            // patient Id
+            String PatientID =  msgParts[0].substring(52,73).trim();
+log.AddToDisplay.Display(msgParts[0],DisplayMessageType.INFORMATION);
+            // Results Data
+            String[] DataParts = normalizeData(msgParts[0].substring(78,172));
 
-                  // this command initiates and fetching of pending requests from ALIS and sends to IPU(Sysmex Software[api])
-                  log.AddToDisplay.Display("\nSamples from ALIS Sent to IPU",DisplayMessageType.INFORMATION);
-
-                }else{
-                  String patientIdParts[] = msgParts[1].split("\\|");
-                  // patient Id
-                  PatientID =  patientIdParts[4].trim();
-
-                  // restrict string manupulation to actual results only
-                  for(int i=5;i<29;i++){
-                    // measure id of the instrument, now get mmeasure id of LIS
-                    mID = getMeasureID(msgParts[i].split("\\|")[1]);
-                    if(mID > 0){
-
-                      String rawResult = "";
-                      // actual result
-                      rawResult = msgParts[i].split("\\|")[3];
-                      String result = rawResult;
-
-                      try
-                      {
-                        value = Float.parseFloat(result);
-                      }catch(NumberFormatException e){
+            for(int i=0;i<DataParts.length;i++)
+            {
+                mID = getMeasureID(i);
+                if(mID > 0)
+                {
+                    try
+                    {
+                        value = Float.parseFloat(DataParts[i].trim());
+                    }catch(NumberFormatException e){
                         try{
-                          value = 0;
+                            value = Float.parseFloat(DataParts[i].trim());
                         }catch(NumberFormatException ex){}
-                      }
-                      if(SaveResults(PatientID, mID,value))
-                      {
-                        flag = true;
-                      }
                     }
-                  }
-                  // when is this flag applicable
-                  if(flag)
-                  {
-                    log.AddToDisplay.Display("\nResults with Code: "+PatientID +" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
-                  }
-                  else
-                  {
-                    log.AddToDisplay.Display("\nSpecimen with Code: "+PatientID +" not Found on BLIS",DisplayMessageType.WARNING);
-                  }
+                    if(SaveResults(PatientID, mID,value))
+                    {
+                        flag = true;
+                    }
                 }
-              }
-              else
-              {
-                  log.AddToDisplay.Display("QC or BACKGROUND CHECK information Skipped",DisplayMessageType.INFORMATION);
-              }
-              appMode = MODE.IDLE;
-              synchronized(MainForm.set)
-              {
-                MainForm.set = MainForm.RESET.NOW;
-              }
+            }
+
+            // when is this flag applicable
+            if(flag)
+            {
+              log.AddToDisplay.Display("\nResults with Code: "+PatientID +" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
+            }
+            else
+            {
+              log.AddToDisplay.Display("\nSpecimen with Code: "+PatientID +" not Found on BLIS",DisplayMessageType.WARNING);
+            }
+            appMode = MODE.IDLE;
+            synchronized(MainForm.set)
+            {
+              MainForm.set = MainForm.RESET.NOW;
+            }
 
           }
           else if (type == MSGTYPE.NAK)
@@ -370,50 +349,105 @@ public class SYSMEXXS1000i extends Thread{
     private static String getSpecimenFilter(int whichdata)
     {
         String data = "";
-        xmlparser p = new xmlparser("configs/SYSMEX/SYSMEXXS1000i.xml");
+        xmlparser p = new xmlparser("configs/SYSMEX/SYSMEXPOCH100i.xml");
         try {
             data = p.getMicros60Filter(whichdata);
         } catch (Exception ex) {
-            Logger.getLogger(SYSMEXXS1000i.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SYSMEXPOCH100i.class.getName()).log(Level.SEVERE, null, ex);
             log.logger.PrintStackTrace(ex);
             log.AddToDisplay.Display(ex.getMessage(), log.DisplayMessageType.ERROR);
         }
         return data;
     }
 
-     private static int getMeasureID(String equipmentID)
-     {
-         int measureid = 0;
-         for(int i=0;i<testIDs.size();i++)
-         {
-             if(testIDs.get(i).split(";")[0].equalsIgnoreCase(equipmentID))
-             {
-                 measureid = Integer.parseInt(testIDs.get(i).split(";")[1]);
-                 break;
-             }
-         }
-         return measureid;
-     }
-     private static String getEquipmentID(String measureID)
-     {
-         String equipmentID = "";
-         for(int i=0;i<testIDs.size();i++)
-         {
-             if(testIDs.get(i).split(";")[1].equalsIgnoreCase(measureID))
-             {
-                 equipmentID = testIDs.get(i).split(";")[0];
-                 break;
-             }
-         }
+    private static String[] normalizeData(String data)
+    {
+      // number characters from the string, that make the results
+      int[] normkeys = {5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5};
+      // formating of the results
+      String[] normformat ={"###.##","###.##","###.##","###.##",
+          "###.##","###.##","###.##","###.##","###.##",
+          "###.##","###.##","###.##","###.##","###.##","###.##","###.##","###.##","###.##","###.##"};
+      DecimalFormat myFormatter;
+      // 95 is the size of the string array
+      String[] norm = new String[95];
+      // start is index of 1st content; indstart is index of ??? content; 
+      for(int i=0,start=0,indstart =0;i<normkeys.length;i++,start++)
+      {           
+          norm[start] = customFormat(data.substring(indstart, indstart+normkeys[i]),normformat[i]);
+          indstart = indstart + normkeys[i];
+          
+          System.out.println("i:"+i+" indstart:"+indstart+"normkeys[i]:"+normkeys[i]);
+      }
+      return norm;
+    }
 
-         return equipmentID;
-     }
+    private static String customFormat(String value, String pattern)
+    {
+        String formated ="";
+        int ind = 0;
+        try
+        {
+            formated = String.valueOf(Integer.parseInt(value));
+           for(int i = pattern.length()-1,in=0;i>=0;i--,in++)
+            {
+                if(pattern.charAt(i) == '.')
+                {
+                   ind = in;
+                   break;
+                }
+            }
+
+            if (ind > 0)
+            {
+                for(int i = value.length()-1,in=0;i>=0;i--,in++)
+                {
+                   if(in == ind)
+                   {
+                       formated = value.substring(0,i+1)+"."+value.substring(i+1);
+                       formated =String.valueOf(Float.parseFloat(formated));
+                        break;
+                    }
+                }
+            }
+        }catch(NumberFormatException ex){ formated = "0";}
+        return formated;
+    }
+
+    private static int getMeasureID(int equipmentID)
+    {
+        int measureid = 0;
+        for(int i=0;i<testIDs.size();i++)
+        {
+            if(testIDs.get(i).split(";")[0].equalsIgnoreCase(equipmentID+""))
+            {
+                measureid = Integer.parseInt(testIDs.get(i).split(";")[1]);
+                break;
+            }
+        }
+        return measureid;
+    }
+
+
+    private static String getEquipmentID(String measureID)
+    {
+        String equipmentID = "";
+        for(int i=0;i<testIDs.size();i++)
+        {
+            if(testIDs.get(i).split(";")[1].equalsIgnoreCase(measureID))
+            {
+                equipmentID = testIDs.get(i).split(";")[0];
+                break;
+            }
+        }
+        return equipmentID;
+    }
 
   private static boolean SaveResults(String barcode,int MeasureID, float value)
   {
     boolean flag = false;
     String testtypeid = getSpecimenFilter(1);
-    if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,testtypeid,"sysmexXS-1000i")))
+    if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,testtypeid,"sysmexPOCH-100i")))
     {
       flag = true;
     }

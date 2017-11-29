@@ -30,7 +30,7 @@ import ui.MainForm;
  */
 public class Manager  extends RS232Settings {
     
-    static SerialPort DataserialPort;
+   static SerialPort DataserialPort;
    static int check =0;
    static String EquipmentName ="";
     
@@ -111,6 +111,7 @@ public class Manager  extends RS232Settings {
     }
      public static String readFromSerialPort()
      {
+log.AddToDisplay.Display("reading from port",DisplayMessageType.INFORMATION);
          String data = "";
          SerialPort serialPort = new SerialPort(COMPORT);
         try {
@@ -217,11 +218,8 @@ public class Manager  extends RS232Settings {
                         buffer = DataserialPort.readString();     
                         if(null != buffer)
                         {
-                            // byte bytebuffer[] = DataserialPort.readBytes(event.getEventValue());                    
-                             // buffer = new String(bytebuffer,cs);
-                             // buffer = new String(bytebuffer);          
-                              log.AddToDisplay.Display(buffer, log.DisplayMessageType.INFORMATION);
-                              system.utilities.writetoFile(buffer);
+                            log.AddToDisplay.Display(buffer, log.DisplayMessageType.INFORMATION);
+                            system.utilities.writetoFile(buffer);
 
                             switch(EquipmentName.toUpperCase())
                             {
@@ -239,6 +237,9 @@ public class Manager  extends RS232Settings {
                                     break;
                                 case "MINDRAY BC 3600":
                                     MindrayBC3600.HandleDataInput(buffer);
+                                    break;
+                                case "HUMACOUNT 60TS":
+                                    HumaCount60TS.HandleDataInput(buffer);
                                     break;
                                 case "BT3000PLUSCHAMELEON":
                                     BT3000PlusChameleon.HandleDataInput(buffer);

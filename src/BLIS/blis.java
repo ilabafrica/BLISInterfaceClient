@@ -231,7 +231,7 @@ public class blis {
          return "";
     }
     // used by sysmex xs1000i
-    public static String saveResults(String patientID, int measureID, float result,int testTypeID)
+    public static String saveResults(String patientID, int measureID, float result,String testTypeID,String instrument)
     {
         String data="-1";
         try
@@ -241,6 +241,7 @@ public class blis {
             url = url + "&patient_id="+URLEncoder.encode(patientID,"UTF-8");
             url = url + "&test_type_id="+testTypeID;
             url = url + "&measure_id="+measureID;
+            url = url + "&instrument="+instrument;
             url = url + "&result="+result;
 
             URL burl = new URL(url);

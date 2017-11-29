@@ -188,7 +188,8 @@ public class Cobase411 extends Thread {
          
          
           boolean flag = false;       
-          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,0)))
+          String testtypeid = getSpecimenFilter(1);
+          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,testtypeid,"Cobase411")))
            {
               flag = true;
             }

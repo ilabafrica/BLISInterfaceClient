@@ -255,7 +255,7 @@ public class SelectraJunior extends Thread {
          
          
           boolean flag = false;       
-          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,2)))
+          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,"2","SelectraJunior")))
            {
               flag = true;
             }

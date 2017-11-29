@@ -121,7 +121,7 @@ class ClientThread extends Thread
                               break;*/
                         }
                     }
-                    else if(this.Equipmentname.equalsIgnoreCase("SYSMEX XS-1000i"))
+                    else if(this.Equipmentname.equalsIgnoreCase("SYSMEX XS-1000i") || this.Equipmentname.equalsIgnoreCase("SYSMEX pocH-100i"))
                     {
                         int c=0;
                         int val;
@@ -222,6 +222,9 @@ class ClientThread extends Thread
                           break;
                       case "BT3000PlUSChameleon":
                           BT3000PlusChameleon.handleMessage(read);
+                          break;
+                      case "SYSMEX pocH-100i":
+                          SYSMEXPOCH100i.handleMessage(read);
                           break;
                       case "SYSMEX XS-500i":
                           SYSMEXXS500i.handleMessage(read);

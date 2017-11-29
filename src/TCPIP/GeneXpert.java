@@ -635,6 +635,7 @@ public class GeneXpert extends Thread{
          
          
           boolean flag = false;       
+          String testtypeid = getSpecimenFilter(1);
           /*if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value)))
            {
               flag = true;

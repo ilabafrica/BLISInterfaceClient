@@ -157,7 +157,7 @@ public class MSACCESSABXPentra60CPlus  extends Thread {
          for(int i=0;i<results.size();i++)
          {
              results.get(i).measureID = getMeasureID(results.get(i).equipmentID);
-             if("1".equals(BLIS.blis.saveResults(barcode,results.get(i).measureID,results.get(i).result,2)))
+             if("1".equals(BLIS.blis.saveResults(barcode,results.get(i).measureID,results.get(i).result,"2","MSACCESSABXPentra60CPlus")))
              {
                  flag = true;
              }

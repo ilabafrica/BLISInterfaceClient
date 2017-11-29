@@ -373,8 +373,9 @@ public class SYSMEXXS500i extends Thread{
      {
          
          
-          boolean flag = false;       
-          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,0)))
+          boolean flag = false;     
+          String testtypeid = getSpecimenFilter(1);  
+          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,testtypeid,"sysmex XS-500i")))
            {
               flag = true;
             }

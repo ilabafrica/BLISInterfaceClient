@@ -119,35 +119,32 @@ public class MindrayBC3600 extends Thread {
     private static String customFormat(String value, String pattern)
     {
         String formated ="";
-       int ind = 0;
-       try
-       {
+        int ind = 0;
+        try
+        {
             formated = String.valueOf(Integer.parseInt(value));
            for(int i = pattern.length()-1,in=0;i>=0;i--,in++)
-           {
-               if(pattern.charAt(i) == '.')
-               {
+            {
+                if(pattern.charAt(i) == '.')
+                {
                    ind = in;
                    break;
-               }
-           }
+                }
+            }
 
             if (ind > 0)
             {
-                 for(int i = value.length()-1,in=0;i>=0;i--,in++)
-                 {
-                    if(in == ind)
-                    {
-                        formated = value.substring(0,i+1)+"."+value.substring(i+1);
-                        formated =String.valueOf(Float.parseFloat(formated));
+                for(int i = value.length()-1,in=0;i>=0;i--,in++)
+                {
+                   if(in == ind)
+                   {
+                       formated = value.substring(0,i+1)+"."+value.substring(i+1);
+                       formated =String.valueOf(Float.parseFloat(formated));
                         break;
                     }
-
-                 }
+                }
             }
-       }catch(NumberFormatException ex){ formated = "0";}
-          
-        
+        }catch(NumberFormatException ex){ formated = "0";}
         return formated;
     }
     
@@ -279,7 +276,8 @@ public class MindrayBC3600 extends Thread {
          
          
           boolean flag = false;       
-          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,0)))
+          String testtypeid = getSpecimenFilter(1);
+          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,testtypeid,"MindrayBC3600")))
            {
               flag = true;
             }
