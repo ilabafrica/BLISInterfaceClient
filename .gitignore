@@ -1,6 +1,5 @@
 build/
 *.log
 dist/
-nbproject/
 *.ini
 *.txt
