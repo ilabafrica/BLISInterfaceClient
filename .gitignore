@@ -6,6 +6,7 @@ nbdist/
 .nb-gradle/
 build/
 deploy/
+notes/
 *.log
 *.ini
 *.txt
