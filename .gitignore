@@ -1,6 +1,11 @@
-build/
-*.log
+### NetBeans ###
+nbproject/private/
+nbbuild/
 dist/
-nbproject/
+nbdist/
+.nb-gradle/
+build/
+deploy/
+*.log
 *.ini
 *.txt
