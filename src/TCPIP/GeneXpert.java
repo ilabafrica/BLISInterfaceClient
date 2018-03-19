@@ -400,6 +400,8 @@ public class GeneXpert extends Thread{
                                 int mID=0;
                                 String value = "";
                                 boolean flag = false;
+log.AddToDisplay.Display("\n msgParts",DisplayMessageType.INFORMATION);
+log.AddToDisplay.Display("\n"+msgParts +"",DisplayMessageType.INFORMATION);
                                 if(msgParts.length > resultslocs[resultslocs.length -1] )
                                 {
                                     for(int i=0;i<resultslocs.length;i++)
