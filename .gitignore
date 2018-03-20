@@ -8,5 +8,4 @@ build/
 deploy/
 notes/
 *.log
-*.ini
 *.txt
