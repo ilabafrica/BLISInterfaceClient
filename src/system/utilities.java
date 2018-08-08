@@ -49,7 +49,7 @@ public class utilities
        }
     }
     
-     public static String getHL7DateOnly(String Date,String PDate)
+     public static String getHL7DateOnly(String Date)
     {
        try
        {
@@ -57,11 +57,8 @@ public class utilities
             {
                 String[] parts = Date.split("-");
                 return parts[0]+  parts[1]+ parts[2]; 
-            }
-            else
-            {    
-                String[] parts = PDate.split("-");
-                return parts[0]+  parts[1]+ parts[2];   
+            }else{
+                return "00000000";
             }
        }catch(Exception ex){
        
@@ -69,17 +66,15 @@ public class utilities
        }
     }
     
-    public static String getNormalizedDate(String Date,String PDate)
+    public static String getNormalizedDate(String Date)
     {
        try
        {
             if(Date != null)
             {
                 return Date;
-            }
-            else
-            {    
-                return PDate;
+            }else{
+                return "0000-00-00";
             }
        }catch(Exception ex){
        

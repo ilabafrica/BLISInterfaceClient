@@ -19,6 +19,6 @@ public class Result {
     public int equipmentID;
     public float result;
     public int measureID;
-    public String aux_id;
+    public String specimen_id;
     
 }

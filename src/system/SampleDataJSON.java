@@ -24,44 +24,41 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import log.DisplayMessageType;
 
-
-
 /**
  *
  * @author Stephen Adjei-Kyei <stephen.adjei.kyei@gmail.com>
  */
-public class SampleDataJSON  {
-    
- public static List<sampledata>  getSampleObject(String json)
-  {
+public class SampleDataJSON {
+
+    public static List<sampledata>  getSampleObject(String json)
+    {
         List<sampledata> SampleList = new ArrayList<>();
         JsonFactory f = new JsonFactory();
         JsonParser jp;
         ObjectMapper mapper = new ObjectMapper();
-     try 
-     {
-         jp = f.createJsonParser(json);
-         jp.nextToken(); // just move to the first start of objects. This makes the while loop start
-      
-        
-        while (jp.nextToken() == JsonToken.START_OBJECT) 
+        try 
         {
-            SampleList.add(mapper.readValue(jp, sampledata.class));    
-        }
-     } catch (IOException ex) 
-     {
-         Logger.getLogger(SampleDataJSON.class.getName()).log(Level.SEVERE, null, ex);
-         log.AddToDisplay.Display(ex.getMessage(),DisplayMessageType.ERROR);
-         log.logger.Logger(ex.getMessage());
-     }
-       
-     return SampleList;
-  }
+            jp = f.createJsonParser(json);
+            // just move to the first start of objects. This makes the while loop start
+            jp.nextToken();
 
-    
- public static List<sampledata> normaliseResults(List<sampledata> data)
- {
-     hl7.Mindray.Message msg = new Message();
-     return msg.normaliseResults(data);
- }
+            while (jp.nextToken() == JsonToken.START_OBJECT)
+            {
+                SampleList.add(mapper.readValue(jp, sampledata.class));
+            }
+        } catch (IOException ex){
+            Logger.getLogger(SampleDataJSON.class.getName()).log(Level.SEVERE, null, ex);
+            log.AddToDisplay.Display(ex.getMessage(),DisplayMessageType.ERROR);
+            log.logger.Logger(ex.getMessage());
+        }
+// convert to string
+log.AddToDisplay.Display("object data looks like so: "+ SampleList, DisplayMessageType.INFORMATION);
+        return SampleList;
+    }
+
+    public static List<sampledata> normaliseResults(List<sampledata> data)
+    {
+        hl7.Mindray.Message msg = new Message();
+        return msg.normaliseResults(data);
+    }
 }

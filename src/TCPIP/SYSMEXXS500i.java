@@ -139,11 +139,11 @@ public class SYSMEXXS500i extends Thread{
        
     }
     
-    private static void getBLISTests(String aux_id, boolean flag, String[] query)
+    private static void getBLISTests(String specimen_id, boolean flag, String[] query)
      {
          try
          {
-            String data = BLIS.blis.getTestData(getSpecimenFilter(2), getSpecimenFilter(1),aux_id);
+            String data = BLIS.blis.getTestData(getSpecimenFilter(2), getSpecimenFilter(1),specimen_id);
             List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
             SampleList = SampleDataJSON.normaliseResults(SampleList);
             if(SampleList.size() > 0)
@@ -151,7 +151,7 @@ public class SYSMEXXS500i extends Thread{
                 for (int i=0;i<SampleList.size();i++) 
                 {               
 
-                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).aux_id + " to SYSMEX XS-500i",DisplayMessageType.INFORMATION);
+                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).specimen_id + " to SYSMEX XS-500i",DisplayMessageType.INFORMATION);
                         AddtoQueue(SampleList.get(i),query,false);                   
                 }
 
@@ -160,7 +160,7 @@ public class SYSMEXXS500i extends Thread{
               {
                   AddtoQueue(null, query, true);
                  if(flag)                         
-                   log.AddToDisplay.Display("Sample with barcode: "+aux_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
+                   log.AddToDisplay.Display("Sample with barcode: "+specimen_id +" does not exist in BLIS",DisplayMessageType.INFORMATION);
              }
          }catch(Exception ex)
          {
@@ -177,20 +177,20 @@ public class SYSMEXXS500i extends Thread{
           if(!empty)
           {            
             strData.append("P|1|||");          
-            strData.append(get.surr_id);
+            strData.append(get.patient_id);
             strData.append("|^");
-            strData.append(get.name.trim().replaceFirst(" ", "^"));
+            strData.append(get.patient_name.trim().replaceFirst(" ", "^"));
             strData.append("||");
-            strData.append(utilities.getHL7DateOnly(get.dob,get.partial_dob));
+            strData.append(utilities.getHL7DateOnly(get.dob));
             strData.append("|");
-            strData.append(get.sex);
+            strData.append(get.gender);
             strData.append("|||||^");
             strData.append(get.doctor);
             strData.append("||||||||||||");          
             strData.append("^^^OPD");
             strData.append(CARRIAGE_RETURN);
             strData.append("O|1|");
-            strData.append(get.aux_id);
+            strData.append(get.specimen_id);
             strData.append("|");
             strData.append(query[1].split("\\|")[2].split("\\^")[0]);
             strData.append("^");
@@ -199,9 +199,9 @@ public class SYSMEXXS500i extends Thread{
             strData.append("|");
             strData.append("^^^^WBC\\^^^^RBC\\^^^^HGB\\^^^^HCT\\^^^^MCV\\^^^^MCH\\^^^^MCHC\\^^^^PLT\\^^^^NEUT%\\^^^^LYMPH%\\^^^^MONO%\\^^^^EO%\\^^^^BASO%\\^^^^NEUT#\\^^^^LYMPH#\\^^^^MONO#\\^^^^EO#\\^^^^BASO#\\^^^^RDW-SD\\^^^^RDW-CV\\^^^^PDW\\^^^^MPV\\^^^^P-LCR\\^^^^PCT");
             strData.append("||");
-            strData.append(utilities.getHL7Date(get.date_recvd,get.date_collected,"YYYYMMDDHHMMSS"));
+            strData.append(utilities.getHL7Date(get.time_accepted,get.time_collected,"YYYYMMDDHHMMSS"));
             strData.append("|");
-            strData.append(utilities.getHL7Date(get.date_collected,get.date_recvd,"YYYYMMDDHHMMSS"));
+            strData.append(utilities.getHL7Date(get.time_collected,get.time_accepted,"YYYYMMDDHHMMSS"));
             strData.append("||||||||");
             strData.append(get.doctor);
             strData.append(CARRIAGE_RETURN);
@@ -261,23 +261,23 @@ public class SYSMEXXS500i extends Thread{
                     boolean flag = false;
                     for(int i=5;i<=29;i++)
                     {
-                            mID = getMeasureID(msgParts[i].split("\\|")[1]);
-                            if(mID > 0)
+                        mID = getMeasureID(msgParts[i].split("\\|")[1]);
+                        if(mID > 0)
+                        {
+                            try
                             {
-                                try
-                                {
-                                    value = Float.parseFloat(msgParts[i].split("\\|")[3]);
-                                }catch(NumberFormatException e){
-                                    try{
-                                    value = 0;
-                                    }catch(NumberFormatException ex){}
+                                value = Float.parseFloat(msgParts[i].split("\\|")[3]);
+                            }catch(NumberFormatException e){
+                                try{
+                                value = 0;
+                                }catch(NumberFormatException ex){}
 
-                                }
-                                if(SaveResults(SampleID, mID,value))
-                                {
-                                    flag = true;
-                                }
                             }
+                            if(SaveResults(SampleID, mID,value))
+                            {
+                                flag = true;
+                            }
+                        }
                     }
                      if(flag)
                         {
@@ -373,8 +373,9 @@ public class SYSMEXXS500i extends Thread{
      {
          
          
-          boolean flag = false;       
-          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,0)))
+          boolean flag = false;     
+          String testtypeid = getSpecimenFilter(1);  
+          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,testtypeid,"sysmex XS-500i")))
            {
               flag = true;
             }

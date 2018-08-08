@@ -31,6 +31,7 @@ import javax.swing.JOptionPane;
 import log.logger;
 import system.*;
 
+
 /**
  *
  * @author Stephen Adjei-Kyei <stephen.adjei.kyei@gmail.com>
@@ -65,9 +66,12 @@ public class MainForm extends javax.swing.JFrame {
     ABXPentra80 pentra80Obj = null;
     CobasAmpliPrep cobasObj = null;
     MindrayBC3600 minbc3600obj = null;
+    HumaCount60TS humcnt60tsobj = null;
     GeneXpert expobj = null;
     SYSMEXXT2000i sys2000iObj = null;
     FlexorE flexObj = null;
+    SYSMEXXS1000i sys1000iObj = null;
+    SYSMEXPOCH100i sys100iObj = null;
    //public static boolean reset = false;
    public static enum RESET
    {
@@ -405,7 +409,6 @@ public class MainForm extends javax.swing.JFrame {
                 switch(jlblEquipment.getText())
                 {
                     case "ABX Pentra 80":
-                        log.AddToDisplay.Display("Manual Download from BLIS Sample Code:"+jtxtManualBarcode.getText(),log.DisplayMessageType.TITLE);                     
                        new ABXPentra80().getFromBlis(jtxtManualBarcode.getText());                 
                         break;
                 }
@@ -413,11 +416,9 @@ public class MainForm extends javax.swing.JFrame {
                 switch(jlblEquipment.getText())
                 {
                     case "BT3000 Plus-Chameleon":                        
-                       log.AddToDisplay.Display("Manual Download from BLIS Sample Barcode:"+jtxtManualBarcode.getText(),log.DisplayMessageType.TITLE);                     
                        new TCPIP.BT3000PlusChameleon().getFromBlis(jtxtManualBarcode.getText());
                         break;
                     case "Cobas AmpliPrep":
-                         log.AddToDisplay.Display("Manual Download from BLIS Sample Barcode:"+jtxtManualBarcode.getText(),log.DisplayMessageType.TITLE);                     
                         new CobasAmpliPrep().getFromBlis(jtxtManualBarcode.getText());
                         break;
                 }
@@ -426,7 +427,6 @@ public class MainForm extends javax.swing.JFrame {
                 switch(jlblEquipment.getText())
                 {
                     case "ABX Pentra 60C+":    
-                        log.AddToDisplay.Display("Manual Download from BLIS Sample Barcode:"+jtxtManualBarcode.getText(),log.DisplayMessageType.TITLE);
                      new MSACCESSABXPentra60CPlus().getFromBlis(jtxtManualBarcode.getText());
                         break;
                 }
@@ -459,8 +459,6 @@ public class MainForm extends javax.swing.JFrame {
                 switch(jlblEquipment.getText())
                 {
                     case "ABX Pentra 60C+":  
-                        
-                        log.AddToDisplay.Display("Manual Send to BLIS Sample Barcode:"+jtxtManualBarcode.getText(),log.DisplayMessageType.TITLE);
                         new MSACCESSABXPentra60CPlus().sendToBlis(jtxtManualBarcode.getText());
                         break;
                 }
@@ -485,6 +483,9 @@ public class MainForm extends javax.swing.JFrame {
                         break;
                       case "MINDRAY BC 3600":                        
                         minbc3600obj.Stop();
+                        break;
+                      case "HUMACOUNT 60TS":                        
+                        humcnt60tsobj.Stop();
                         break;
                       case "BT3000 PLUS-CHAMELEON":
                           btRSobj.Stop();
@@ -525,6 +526,12 @@ public class MainForm extends javax.swing.JFrame {
                         break;
                     case "SYSMEX XT-2000I":
                         sys2000iObj.Stop();
+                        break;
+                    case "SYSMEX XS-1000I":
+                        sys1000iObj.Stop();
+                        break;
+                    case "SYSMEX POCH-100I":
+                        sys100iObj.Stop();
                         break;
                 }
                 break;
@@ -569,6 +576,10 @@ public class MainForm extends javax.swing.JFrame {
                     case "MINDRAY BC 3600":
                         minbc3600obj = new MindrayBC3600();
                         minbc3600obj.start();
+                        break;     
+                    case "HUMACOUNT 60TS":
+                        humcnt60tsobj = new HumaCount60TS();
+                        humcnt60tsobj.start();
                         break;     
                     case "BT3000 PLUS-CHAMELEON":
                           btRSobj = new RS232.BT3000PlusChameleon();
@@ -617,6 +628,14 @@ public class MainForm extends javax.swing.JFrame {
                      case "SYSMEX XT-2000I":
                         sys2000iObj = new SYSMEXXT2000i();
                         sys2000iObj.start();
+                        break;
+                    case "SYSMEX XS-1000I":                        
+                        sys1000iObj = new SYSMEXXS1000i();
+                        sys1000iObj.start();
+                        break;
+                    case "SYSMEX POCH-100I":                        
+                        sys100iObj = new SYSMEXPOCH100i();
+                        sys100iObj.start();
                         break;
                 }
                 break;

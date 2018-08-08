@@ -149,11 +149,11 @@ public class BT3000PlusChameleon extends Thread {
         
      }
     
-    private static void getBLISTests(String aux_id, boolean flag)
+    private static void getBLISTests(String specimen_id, boolean flag)
      {
          try
          {
-            String data = BLIS.blis.getSampleData(aux_id,"","",getSpecimenFilter(2), getSpecimenFilter(4));
+            String data = BLIS.blis.getSampleData(specimen_id,"","",getSpecimenFilter(2), getSpecimenFilter(4));
             List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
             SampleList = SampleDataJSON.normaliseResults(SampleList);
             if(SampleList.size() > 0)
@@ -161,7 +161,7 @@ public class BT3000PlusChameleon extends Thread {
                 for (int i=0;i<SampleList.size();i++) 
                 {  
                        
-                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).aux_id + " to BT 3000Plus Chameleon",DisplayMessageType.INFORMATION);
+                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).specimen_id + " to BT 3000Plus Chameleon",DisplayMessageType.INFORMATION);
                        prepare(SampleList.get(i));
                        appState = MSGMODE.WAIT_FOR_ACK;
                        order = String.valueOf(ENQ);
@@ -178,7 +178,7 @@ public class BT3000PlusChameleon extends Thread {
               {
                  // AddtoQueue(null, query);
                  if(flag)                         
-                   log.AddToDisplay.Display("Sample with barcode: "+aux_id +" does not exist in BLIS",DisplayMessageType.WARNING);
+                   log.AddToDisplay.Display("Sample with barcode: "+specimen_id +" does not exist in BLIS",DisplayMessageType.WARNING);
              }
          }catch(Exception ex)
          {
@@ -207,14 +207,14 @@ public class BT3000PlusChameleon extends Thread {
        strTemp = new StringBuffer();       
        strData.append(STX);      
        strTemp.append("2P|1||");
-       strTemp.append(get.surr_id);
+       strTemp.append(get.patient_id);
        strTemp.append("||");
-       strTemp.append(get.name.trim().replaceFirst(" ", "^"));
+       strTemp.append(get.patient_name.trim().replaceFirst(" ", "^"));
        strTemp.append("||");
-       String[] parts = utilities.getNormalizedDate(get.dob,get.partial_dob).split("-");
+       String[] parts = utilities.getNormalizedDate(get.dob).split("-");
        strTemp.append(parts[0]).append(parts[1]).append(parts[2]);
        strTemp.append("|");
-       strTemp.append(get.sex);
+       strTemp.append(get.gender);
        strTemp.append("|||||||||||||||||");          
        strTemp.append("OPD");
        strTemp.append(CR);
@@ -228,7 +228,7 @@ public class BT3000PlusChameleon extends Thread {
        strTemp = new StringBuffer();      
        strData.append(STX);       //4O|1|SID007||^^^CBC|R||||||A<CR><ETX>04<CR><LF>;
        strTemp.append("3O|1|");      
-       strTemp.append(get.aux_id);
+       strTemp.append(get.specimen_id);
        strTemp.append("||");
        strTemp.append("^^^DIF");
        strTemp.append("|R||||||A");            
@@ -380,9 +380,9 @@ public class BT3000PlusChameleon extends Thread {
     private static boolean SaveResults(String barcode,int MeasureID, float value)
      {
          
-         
+         String testtypeid = getSpecimenFilter(1);
           boolean flag = false;       
-          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,0)))
+          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,testtypeid,"BT3000PlusChameleon")))
            {
               flag = true;
             }
