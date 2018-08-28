@@ -31,7 +31,7 @@ public class HumaCount60TS extends Thread {
         log.AddToDisplay.Display("Checking available ports on this system...", DisplayMessageType.INFORMATION);
         String[] ports = Manager.getSerialPorts();
         log.AddToDisplay.Display("Avaliable ports:", DisplayMessageType.TITLE);
-       for(int i = 0; i < ports.length; i++){           
+       for(int i = 0; i < ports.length; i++){
            log.AddToDisplay.Display(ports[i],log.DisplayMessageType.INFORMATION);
         }
        log.AddToDisplay.Display("Now connecting to port "+RS232Settings.COMPORT , DisplayMessageType.TITLE);

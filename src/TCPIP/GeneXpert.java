@@ -27,6 +27,7 @@ import system.SampleDataJSON;
 import system.settings;
 import system.utilities;
 import ui.MainForm;
+import java.util.Arrays;
 
 /**
  *
@@ -44,10 +45,25 @@ public class GeneXpert extends Thread{
     private static List<String> testIDs = new ArrayList<>();
     private static Queue<String> PatientTest = new LinkedList<>();
     private static String ASTMMsgs ="";
+    String[] GeneXpertresults;
      
     boolean stopped = false;
     //Queue<String> InQueue=new LinkedList<>();
-    private static final char CARRIAGE_RETURN = 13; 
+    private static final char CARRIAGE_RETURN = 13;
+    
+    /*
+    private static final char STX = 002;
+    private static final char ACK = 006;
+    private static final char EOT = 004;
+    private static final char NAK = 001;
+    private static final char NUL = 000;
+    private static final char ENQ = 005;
+    private static final char ETX = 003;
+    private static final char CR = 013;
+    private static final char LF = 010;
+    private static final char ETB = 023;
+    */
+    
     private static final char STX = 0x02;
     private static final char ACK = 0x06;
     private static final char EOT = 0x04;
@@ -354,8 +370,11 @@ public class GeneXpert extends Thread{
       }
       
       private static void process()
-      {        
-          int[] resultslocs = {3,22};
+      {
+          
+          
+          
+          
            if(!ASTMMsgs.isEmpty())
                {
                    //String.valueOf(STX)+"[\\d]
@@ -363,6 +382,7 @@ public class GeneXpert extends Thread{
                    ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(ETB)+String.valueOf(CR), "");
                    
                    String[] PatientParts = ASTMMsgs.trim().split("L\\|1\\|N"+String.valueOf(CR));
+                   
                     for(int p=0;p<PatientParts.length;p++)
                     {
                         String[] msgParts = PatientParts[p].trim().split("\r");
@@ -374,6 +394,7 @@ public class GeneXpert extends Thread{
                         String pidParts[] = msgParts[id].split("\\|");
                         if(pidParts.length > 4)
                         {
+                            
                             if("Q".equals(pidParts[0].trim()))
                             {
                                  String patientid = pidParts[2].split("\\^")[0].trim();                                 
@@ -400,28 +421,56 @@ public class GeneXpert extends Thread{
                                 int mID=0;
                                 String value = "";
                                 boolean flag = false;
-log.AddToDisplay.Display("\n msgParts",DisplayMessageType.INFORMATION);
-log.AddToDisplay.Display("\n"+msgParts +"",DisplayMessageType.INFORMATION);
+                                log.AddToDisplay.Display("\n msgParts",DisplayMessageType.INFORMATION);
+                                log.AddToDisplay.Display("\n"+msgParts +"",DisplayMessageType.INFORMATION);
+                                /*
                                 if(msgParts.length > resultslocs[resultslocs.length -1] )
-                                {
+                                {*/
+                                    /*
                                     for(int i=0;i<resultslocs.length;i++)
-                                    {
+                                    {   
                                         if(msgParts[resultslocs[i]].split("\\|")[0].endsWith("R"))
-                                        {
-                                            mID = getMeasureID(msgParts[resultslocs[i]].split("\\|")[2].split("\\^")[3].trim());
+                                        {*/
+                                    String[] GeneXpertresults = new String[51];
+                                    int arrayloc = 0;
+                                    for(int i=6;i<=51;i++)
+                                    {
+                                        int[] resultslocs = {3,i};
+                                            System.out.println("whole" + msgParts[resultslocs[1]]);
+                                            //System.out.println("mid" +msgParts[resultslocs[i]].split("\\|")[2].split("\\^")[3].trim());
+                                            //mID = getMeasureID(msgParts[resultslocs[i]].split("\\|")[2].split("\\^")[3].trim());
+                                            mID = Integer.parseInt(msgParts[resultslocs[1]].split("\\|")[1].split("\\^")[0].trim());
+                                            
                                             if(mID > 0)
                                             {
                                                 try
                                                 {
-                                                value = msgParts[resultslocs[i]].split("\\|")[3].split("\\^")[0].trim();
-                                                }catch(ArrayIndexOutOfBoundsException ex){ value = "";}
-                                                if(SaveResults(SampleID, mID,value))
-                                                {
-                                                    flag = true;
+                                                value = msgParts[resultslocs[1]].split("\\|")[5];
+                                                System.out.println("SampleID" + SampleID);
+                                                System.out.println("mID" + mID);
+                                                System.out.println("value" + value);
+                                                
+                                                value = value.replace("^", "");
+                                                GeneXpertresults[arrayloc] = mID+":"+value;
+                                               
+                                                arrayloc++;
+                                                
                                                 }
+                                                catch(ArrayIndexOutOfBoundsException ex){ value = "";}
                                             }
-                                        }
                                     }
+                                    String str = Arrays.toString(GeneXpertresults);
+                                    str = str.replace(" ","");
+                                    str = str.replace(",","/");
+                                    System.out.println("str " + str);
+                                    
+                                    if(SaveResults(SampleID,str))
+                                    {
+                                        flag = true;
+                                    }
+                                            
+                                        /*}
+                                    }*/
                                      if(flag)
                                         {
                                              log.AddToDisplay.Display("\nResults with Code: "+SampleID +" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
@@ -430,11 +479,11 @@ log.AddToDisplay.Display("\n"+msgParts +"",DisplayMessageType.INFORMATION);
                                         {
                                              log.AddToDisplay.Display("\nTest with Code: "+SampleID +" not Found on BLIS",DisplayMessageType.WARNING);
                                         }
-                                 }
+                                 /*}
                                 else
                                 {
                                     log.AddToDisplay.Display("Sample with code "+SampleID +" has been deleted from GeneXpert",DisplayMessageType.INFORMATION);
-                                }
+                                }*/
                                  
                                 appMode = MODE.IDLE;
                                 synchronized(MainForm.set)
@@ -476,14 +525,15 @@ log.AddToDisplay.Display("\n"+msgParts +"",DisplayMessageType.INFORMATION);
                 AddtoQueue(ACK);
                ASTMMsgs = ASTMMsgs + "\r"+message;
                appMode = MODE.RECEIVEING_RESULTS;
-               if(ASTMMsgs.endsWith(String.valueOf(EOT)))
-               {
+               //System.out.println("EOT" + ASTMMsgs);
+               //if(ASTMMsgs.endsWith(String.valueOf(EOT)))
+               //{
                    process();
-               }
+               //}
                 
             }
             else if (type == MSGTYPE.EOT)
-            {                
+            {             
                 //todo handle results 
                process();
                 
@@ -602,9 +652,9 @@ log.AddToDisplay.Display("\n"+msgParts +"",DisplayMessageType.INFORMATION);
         }        
         return data;        
     }
-    
+    /*
      private static int getMeasureID(String equipmentID)
-     {
+     {  System.out.println("hit");
          int measureid = 0;
          for(int i=0;i<testIDs.size();i++)
          {
@@ -616,7 +666,7 @@ log.AddToDisplay.Display("\n"+msgParts +"",DisplayMessageType.INFORMATION);
          }
          
          return measureid;
-     }
+     }*/
      private static String getEquipmentID(String measureID)
      {
          String equipmentID = "";
@@ -632,16 +682,14 @@ log.AddToDisplay.Display("\n"+msgParts +"",DisplayMessageType.INFORMATION);
          return equipmentID;
      }
      
-    private static boolean SaveResults(String barcode,int MeasureID, String value)
-     {
-         
-         
-          boolean flag = false;       
-          String testtypeid = getSpecimenFilter(1);
-          /*if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value)))
+    private static boolean SaveResults(String SampleID, String str)
+     {  
+         boolean flag = false;       
+          //String testtypeid = getSpecimenFilter(1);
+          if("1".equals(BLIS.blis.saveGResults(SampleID,str)))
            {
               flag = true;
-            }*/
+            }
                           
          return flag;
          

@@ -233,7 +233,8 @@ public class SYSMEXXS1000i extends Thread{
                   // restrict string manupulation to actual results only
                   for(int i=5;i<29;i++){
                     // measure id of the instrument, now get mmeasure id of LIS
-                    mID = getMeasureID(msgParts[i].split("\\|")[1]);
+                    mID = Integer.parseInt(msgParts[i].split("\\|")[1]);
+                    //mID = getMeasureID(msgParts[i].split("\\|")[1]);
                     if(mID > 0){
 
                       String rawResult = "";
@@ -394,7 +395,8 @@ public class SYSMEXXS1000i extends Thread{
          }
          return measureid;
      }
-     private static String getEquipmentID(String measureID)
+     
+     /*private static String getEquipmentID(String measureID)
      {
          String equipmentID = "";
          for(int i=0;i<testIDs.size();i++)
@@ -407,7 +409,7 @@ public class SYSMEXXS1000i extends Thread{
          }
 
          return equipmentID;
-     }
+     }*/
 
   private static boolean SaveResults(String barcode,int MeasureID, float value)
   {
