@@ -157,7 +157,7 @@ public class SYSMEXXS1000i extends Thread{
               log.AddToDisplay.Display("SYSMEX XS-1000i client is now disconnected!",DisplayMessageType.WARNING);
               log.logger.Logger(e.getMessage());
             }
-	       }
+         }
       }
 
     private static void resetCon()
@@ -382,6 +382,7 @@ public class SYSMEXXS1000i extends Thread{
         return data;
     }
 
+/*
      private static int getMeasureID(String equipmentID)
      {
          int measureid = 0;
@@ -395,6 +396,7 @@ public class SYSMEXXS1000i extends Thread{
          }
          return measureid;
      }
+    */
      
      /*private static String getEquipmentID(String measureID)
      {
