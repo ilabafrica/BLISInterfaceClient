@@ -246,7 +246,6 @@ public class SYSMEXPOCH100i extends Thread{
                     }
                 }
             }
-            System.out.println("Hit ");
             String str = Arrays.toString(poCHresults);
             str = str.replace(" ","");
             str = str.replace(",","/");

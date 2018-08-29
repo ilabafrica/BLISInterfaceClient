@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import log.DisplayMessageType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -230,10 +231,13 @@ public class SYSMEXXS1000i extends Thread{
                   // patient Id
                   PatientID =  patientIdParts[4].trim();
 
+                  String[] Sysmex1000iresults = new String[24];
+                  int arrayloc = 0;
                   // restrict string manupulation to actual results only
                   for(int i=5;i<29;i++){
                     // measure id of the instrument, now get mmeasure id of LIS
                     mID = Integer.parseInt(msgParts[i].split("\\|")[1]);
+                    System.out.println("mID" + mID);
                     //mID = getMeasureID(msgParts[i].split("\\|")[1]);
                     if(mID > 0){
 
@@ -244,18 +248,25 @@ public class SYSMEXXS1000i extends Thread{
 
                       try
                       {
-                        value = Float.parseFloat(result);
+                          value = Float.parseFloat(result);
+                          Sysmex1000iresults[arrayloc] = mID+":"+value;
+                          arrayloc++;
                       }catch(NumberFormatException e){
                         try{
                           value = 0;
                         }catch(NumberFormatException ex){}
                       }
-                      if(SaveResults(PatientID, mID,value))
+                      
+                    }
+                  }
+                  String str = Arrays.toString(Sysmex1000iresults);
+                  str = str.replace(" ","");
+                  str = str.replace(",","/");
+                  System.out.println("str " + str);
+                  if(SaveResults(PatientID, str))
                       {
                         flag = true;
                       }
-                    }
-                  }
                   // when is this flag applicable
                   if(flag)
                   {
@@ -413,11 +424,11 @@ public class SYSMEXXS1000i extends Thread{
          return equipmentID;
      }*/
 
-  private static boolean SaveResults(String barcode,int MeasureID, float value)
+  private static boolean SaveResults(String PatientID, String str)
   {
     boolean flag = false;
     String testtypeid = getSpecimenFilter(1);
-    if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,testtypeid,"sysmexXS-1000i")))
+    if("1".equals(BLIS.blis.saveS1000iResults(PatientID, testtypeid, str)))
     {
       flag = true;
     }

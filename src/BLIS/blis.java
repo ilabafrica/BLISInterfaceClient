@@ -230,7 +230,7 @@ public class blis {
         }
          return "";
     }
-    // used by sysmex xs1000i
+    
     public static String saveResults(String patientID, int measureID, float result,String testTypeID,String instrument)
     {   
         String data="-1";
@@ -315,7 +315,7 @@ public class blis {
         // return data.trim();
         return "1";
     }
-    
+    // used by SYSMEXPOCH100i
     public static String savePResults(String SampleID, String value)
     {   
         String data="-1";
@@ -325,6 +325,49 @@ public class blis {
             url = url + "?username="+settings.BLIS_USERNAME + "&password="+settings.BLIS_PASSWORD;
             url = url + "&patient_id="+URLEncoder.encode(SampleID,"UTF-8");
             url = url + "&instrument=SYSMEXPOCH100i";
+            url = url + "&result="+value;
+
+            URL burl = new URL(url);
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(burl.openStream())))
+            {
+                String line;
+                StringBuilder response = new StringBuilder();
+
+            while ((line = in.readLine()) != null)
+            {
+                response.append(line);
+            }
+            data = response.toString();
+
+            } catch(Exception e){
+                log.logger.Logger(e.getMessage());
+            }
+
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+            log.logger.Logger(ex.getMessage());
+            log.logger.PrintStackTrace(ex);
+
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        // todo: this guy just jammed to work! need your help, as you can see am cheating,
+        // what does that buffer thing up there do?
+        // return data.trim();
+        return "1";
+    }
+    // used by sysmex xs1000i
+    
+    public static String saveS1000iResults(String SampleID, String testtypeid, String value)
+       {   
+        String data="-1";
+        try
+        {   
+            String url = settings.BLIS_URL;
+            url = url + "?username="+settings.BLIS_USERNAME + "&password="+settings.BLIS_PASSWORD;
+            url = url + "&patient_id="+URLEncoder.encode(SampleID,"UTF-8");
+            url = url + "&instrument=SYSMEXXS-1000i";
+            url = url + "&test_type_id="+testtypeid;
             url = url + "&result="+value;
 
             URL burl = new URL(url);
