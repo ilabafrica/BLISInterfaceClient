@@ -21,6 +21,7 @@ import system.settings;
 import system.utilities;
 import java.text.DecimalFormat;
 import ui.MainForm;
+import java.util.Arrays;
 
 /**
  *
@@ -216,10 +217,15 @@ public class SYSMEXPOCH100i extends Thread{
             boolean flag = false;
             // patient Id
             String PatientID =  msgParts[0].substring(52,73).trim();
-log.AddToDisplay.Display(msgParts[0],DisplayMessageType.INFORMATION);
+            System.out.println("whole " +msgParts[0]);
+            log.AddToDisplay.Display(msgParts[0],DisplayMessageType.INFORMATION);
             // Results Data
-            String[] DataParts = normalizeData(msgParts[0].substring(78,172));
-
+            //System.out.println("before normalization" + msgParts[0].substring(78,172));
+            //String[] DataParts = normalizeData(msgParts[0].substring(78,172));
+            String[] DataParts = normalizeData(msgParts[0].substring(76,170));
+            System.out.println("parts " +DataParts.length);
+            int arrayloc = 0;
+            String[] poCHresults = new String[DataParts.length-1];
             for(int i=0;i<DataParts.length;i++)
             {
                 mID = getMeasureID(i);
@@ -228,17 +234,28 @@ log.AddToDisplay.Display(msgParts[0],DisplayMessageType.INFORMATION);
                     try
                     {
                         value = Float.parseFloat(DataParts[i].trim());
+                        System.out.println("PatientID "+ PatientID);
+                        System.out.println("mid "+ mID);
+                        System.out.println("value "+ value);
+                        poCHresults[arrayloc] = mID+":"+value;      
+                        arrayloc++;
                     }catch(NumberFormatException e){
                         try{
                             value = Float.parseFloat(DataParts[i].trim());
                         }catch(NumberFormatException ex){}
                     }
-                    if(SaveResults(PatientID, mID,value))
-                    {
-                        flag = true;
-                    }
                 }
             }
+            System.out.println("Hit ");
+            String str = Arrays.toString(poCHresults);
+            str = str.replace(" ","");
+            str = str.replace(",","/");
+            System.out.println("str "+ str);
+            
+            if(SaveResults(PatientID, str))
+                {
+                    flag = true;
+                }
 
             // when is this flag applicable
             if(flag)
@@ -362,33 +379,43 @@ log.AddToDisplay.Display(msgParts[0],DisplayMessageType.INFORMATION);
 
     private static String[] normalizeData(String data)
     {
+        
       // number characters from the string, that make the results
       int[] normkeys = {5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5};
+      
       // formating of the results
       String[] normformat ={"###.##","###.##","###.##","###.##",
           "###.##","###.##","###.##","###.##","###.##",
           "###.##","###.##","###.##","###.##","###.##","###.##","###.##","###.##","###.##","###.##"};
+      
       DecimalFormat myFormatter;
       // 95 is the size of the string array
-      String[] norm = new String[95];
-      // start is index of 1st content; indstart is index of ??? content; 
+      String[] norm = new String[normkeys.length-1];
+      
+      // start is index of 1st content; indstart is index of ??? content;
       for(int i=0,start=0,indstart =0;i<normkeys.length;i++,start++)
-      {           
+      {
           norm[start] = customFormat(data.substring(indstart, indstart+normkeys[i]),normformat[i]);
           indstart = indstart + normkeys[i];
-          
           System.out.println("i:"+i+" indstart:"+indstart+"normkeys[i]:"+normkeys[i]);
+          System.out.println("normkeys length " + normkeys.length);
+          System.out.println("i " + (i+2));
+          if (i+2==normkeys.length){
+              break;
+          }
       }
+      System.out.println("norm " + Arrays.toString(norm));
       return norm;
     }
 
     private static String customFormat(String value, String pattern)
-    {
+    {   
         String formated ="";
         int ind = 0;
         try
         {
             formated = String.valueOf(Integer.parseInt(value));
+            
            for(int i = pattern.length()-1,in=0;i>=0;i--,in++)
             {
                 if(pattern.charAt(i) == '.')
@@ -397,13 +424,15 @@ log.AddToDisplay.Display(msgParts[0],DisplayMessageType.INFORMATION);
                    break;
                 }
             }
-
+            
+            
             if (ind > 0)
             {
                 for(int i = value.length()-1,in=0;i>=0;i--,in++)
                 {
                    if(in == ind)
                    {
+                       
                        formated = value.substring(0,i+1)+"."+value.substring(i+1);
                        formated =String.valueOf(Float.parseFloat(formated));
                         break;
@@ -415,7 +444,7 @@ log.AddToDisplay.Display(msgParts[0],DisplayMessageType.INFORMATION);
     }
 
     private static int getMeasureID(int equipmentID)
-    {
+    {   
         int measureid = 0;
         for(int i=0;i<testIDs.size();i++)
         {
@@ -443,11 +472,11 @@ log.AddToDisplay.Display(msgParts[0],DisplayMessageType.INFORMATION);
         return equipmentID;
     }
 
-  private static boolean SaveResults(String barcode,int MeasureID, float value)
+  private static boolean SaveResults(String PatientID, String str)
   {
     boolean flag = false;
-    String testtypeid = getSpecimenFilter(1);
-    if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,testtypeid,"sysmexPOCH-100i")))
+    //String testtypeid = getSpecimenFilter(1);
+    if("1".equals(BLIS.blis.savePResults(PatientID,str)))
     {
       flag = true;
     }
