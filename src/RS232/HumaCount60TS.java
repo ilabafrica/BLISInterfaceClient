@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import log.DisplayMessageType;
 import system.settings;
 import system.utilities;
+import java.util.Arrays;
 
 public class HumaCount60TS extends Thread {
 
@@ -45,7 +46,7 @@ public class HumaCount60TS extends Thread {
     public static void HandleDataInput(String data)
     {       
         try
-        {
+        {   
             ASTMMsgs="";
             ASTMMsgs=data;
             ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(ETX), "");
@@ -58,6 +59,8 @@ public class HumaCount60TS extends Thread {
             String PatientID =  msgParts[11].split(String.valueOf(TAB))[1].trim();
 
             // restrict string manupulation to actual results only
+            String[] HumaCount60TSresults = new String[51];
+            int arrayloc = 0;
             for(int i=21;i<43;i++){
                 // measure id of the instrument, now get mmeasure id of LIS
                 mID = getMeasureID(Integer.toString(i));
@@ -71,15 +74,23 @@ public class HumaCount60TS extends Thread {
                     try
                     {
                         value = Float.parseFloat(result);
+                        HumaCount60TSresults[arrayloc] = mID+":"+value;
+                        arrayloc++;
                     }catch(NumberFormatException e){
                         //
                     }
-                    if(SaveResults(PatientID, mID,value))
+                }
+            }
+            String str = Arrays.toString(HumaCount60TSresults);
+                                    str = str.replace(" ","");
+                                    str = str.replace(",","/");
+                                    str = str.replace("/null","");
+                    
+                    System.out.println("str" +str);
+                    if(SaveResults(PatientID, str))
                     {
                         flag = true;
                     }
-                }
-            }
             // when is this flag applicable
             if(flag)
             {
@@ -158,11 +169,11 @@ public class HumaCount60TS extends Thread {
          
          return equipmentID;
      }
-    private static boolean SaveResults(String barcode,int MeasureID, float value)
+    private static boolean SaveResults(String PatientID, String str)
      {
           boolean flag = false;
           String testtypeid = getSpecimenFilter(1);
-          if("1".equals(BLIS.blis.saveResults(barcode,MeasureID,value,testtypeid,"HumaCount60TS")))
+          if("1".equals(BLIS.blis.saveHResults(PatientID,str)))
             {
               flag = true;
             }
