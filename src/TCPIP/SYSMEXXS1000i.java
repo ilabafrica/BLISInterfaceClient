@@ -7,6 +7,7 @@ package TCPIP;
 import BLIS.sampledata;
 import configuration.xmlparser;
 import java.io.*;
+import java.math.BigDecimal;
 import java.net.*;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -21,6 +22,7 @@ import system.SampleDataJSON;
 import system.settings;
 import system.utilities;
 import ui.MainForm;
+import javax.json.*;
 
 /**
  *
@@ -230,14 +232,19 @@ public class SYSMEXXS1000i extends Thread{
                   String patientIdParts[] = msgParts[1].split("\\|");
                   // patient Id
                   PatientID =  patientIdParts[4].trim();
-
-                  String[] Sysmex1000iresults = new String[24];
+                  
+                  JsonObjectBuilder SYSMEX1000iData = Json.createObjectBuilder();
+                  SYSMEX1000iData.add("username", ""+settings.BLIS_USERNAME+"");
+                  SYSMEX1000iData.add("password", ""+settings.BLIS_PASSWORD+"");
+                  SYSMEX1000iData.add("Instrument", "SYSMEX XS-1000i");
+                  SYSMEX1000iData.add("Specimen_id", PatientID);
+                  
+                  JsonArrayBuilder ResultsArray = Json.createArrayBuilder();
                   int arrayloc = 0;
                   // restrict string manupulation to actual results only
                   for(int i=5;i<29;i++){
                     // measure id of the instrument, now get mmeasure id of LIS
                     mID = Integer.parseInt(msgParts[i].split("\\|")[1]);
-                    System.out.println("mID" + mID);
                     //mID = getMeasureID(msgParts[i].split("\\|")[1]);
                     if(mID > 0){
 
@@ -247,10 +254,10 @@ public class SYSMEXXS1000i extends Thread{
                       String result = rawResult;
 
                       try
-                      {
-                          value = Float.parseFloat(result);
-                          Sysmex1000iresults[arrayloc] = mID+":"+value;
-                          arrayloc++;
+                      {   
+                        value = Float.parseFloat(result);
+                        ResultsArray.add(Json.createObjectBuilder().add("mID", ""+mID+"").add("value", ""+value+"").build());
+                        arrayloc++;
                       }catch(NumberFormatException e){
                         try{
                           value = 0;
@@ -259,11 +266,16 @@ public class SYSMEXXS1000i extends Thread{
                       
                     }
                   }
-                  String str = Arrays.toString(Sysmex1000iresults);
-                  str = str.replace(" ","");
-                  str = str.replace(",","/");
-                  System.out.println("str " + str);
-                  if(SaveResults(PatientID, str))
+                    JsonArray resultsArr = ResultsArray.build();
+                    SYSMEX1000iData.add("tests", resultsArr);
+                    JsonObject BlisData = SYSMEX1000iData.build();
+                    StringWriter strWtr = new StringWriter();
+                    JsonWriter jsonWtr = Json.createWriter(strWtr);
+                    jsonWtr.writeObject(BlisData);
+                    jsonWtr.close();
+                  System.out.println("Blis Data"+ strWtr.toString());
+                  
+                  if(SaveResults(strWtr.toString()))
                       {
                         flag = true;
                       }
@@ -424,11 +436,11 @@ public class SYSMEXXS1000i extends Thread{
          return equipmentID;
      }*/
 
-  private static boolean SaveResults(String PatientID, String str)
+  private static boolean SaveResults(String blisdata)
   {
     boolean flag = false;
     String testtypeid = getSpecimenFilter(1);
-    if("1".equals(BLIS.blis.saveS1000iResults(PatientID, testtypeid, str)))
+    if("1".equals(BLIS.blis.sendResults(blisdata)))
     {
       flag = true;
     }
