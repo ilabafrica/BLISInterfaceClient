@@ -291,6 +291,8 @@ public class blis {
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpPost request = new HttpPost(settings.BLIS_URL);
             request.setEntity(entity);
+            request.setHeader("Accept", "application/json");
+            request.setHeader("Content-type", "application/json");
             
             try
             { 

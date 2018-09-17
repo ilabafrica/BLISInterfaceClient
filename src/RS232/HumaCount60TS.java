@@ -62,8 +62,8 @@ public class HumaCount60TS extends Thread {
             JsonObjectBuilder HumaCount60TSData = Json.createObjectBuilder();
             HumaCount60TSData.add("username", ""+settings.BLIS_USERNAME+"");
             HumaCount60TSData.add("password", ""+settings.BLIS_PASSWORD+"");
-            HumaCount60TSData.add("Instrument", "HUMACOUNT 60TS");
-            HumaCount60TSData.add("Specimen_id", PatientID);
+            HumaCount60TSData.add("instrument", "HUMACOUNT 60TS");
+            HumaCount60TSData.add("specimen_id", PatientID);
 
             JsonArrayBuilder ResultsArray = Json.createArrayBuilder();
             int arrayloc = 0;

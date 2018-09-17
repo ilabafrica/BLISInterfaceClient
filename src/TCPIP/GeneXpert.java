@@ -422,8 +422,8 @@ public class GeneXpert extends Thread{
                                     JsonObjectBuilder GeneXpertData = Json.createObjectBuilder();
                                     GeneXpertData.add("username", ""+settings.BLIS_USERNAME+"");
                                     GeneXpertData.add("password", ""+settings.BLIS_PASSWORD+"");
-                                    GeneXpertData.add("Instrument", "GeneXpert");
-                                    GeneXpertData.add("Specimen_id", SampleID);
+                                    GeneXpertData.add("instrument", "GeneXpert");
+                                    GeneXpertData.add("specimen_id", SampleID);
 
                                     JsonArrayBuilder ResultsArray = Json.createArrayBuilder();
                                     int arrayloc = 0;
