@@ -1,8 +1,7 @@
 package RS232;
 
 import configuration.xmlparser;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +12,7 @@ import log.DisplayMessageType;
 import system.settings;
 import system.utilities;
 import java.util.Arrays;
+import javax.json.*;
 
 public class HumaCount60TS extends Thread {
 
@@ -59,7 +59,13 @@ public class HumaCount60TS extends Thread {
             String PatientID =  msgParts[11].split(String.valueOf(TAB))[1].trim();
 
             // restrict string manupulation to actual results only
-            String[] HumaCount60TSresults = new String[51];
+            JsonObjectBuilder HumaCount60TSData = Json.createObjectBuilder();
+            HumaCount60TSData.add("username", ""+settings.BLIS_USERNAME+"");
+            HumaCount60TSData.add("password", ""+settings.BLIS_PASSWORD+"");
+            HumaCount60TSData.add("Instrument", "HUMACOUNT 60TS");
+            HumaCount60TSData.add("Specimen_id", PatientID);
+
+            JsonArrayBuilder ResultsArray = Json.createArrayBuilder();
             int arrayloc = 0;
             for(int i=21;i<43;i++){
                 // measure id of the instrument, now get mmeasure id of LIS
@@ -74,23 +80,27 @@ public class HumaCount60TS extends Thread {
                     try
                     {
                         value = Float.parseFloat(result);
-                        HumaCount60TSresults[arrayloc] = mID+":"+value;
+                        ResultsArray.add(Json.createObjectBuilder().add("test_id", ""+mID+"").add("value", ""+value+"").build());
                         arrayloc++;
                     }catch(NumberFormatException e){
                         //
                     }
                 }
             }
-            String str = Arrays.toString(HumaCount60TSresults);
-                                    str = str.replace(" ","");
-                                    str = str.replace(",","/");
-                                    str = str.replace("/null","");
-                    
-                    System.out.println("str" +str);
-                    if(SaveResults(PatientID, str))
-                    {
-                        flag = true;
-                    }
+            JsonArray resultsArr = ResultsArray.build();
+            HumaCount60TSData.add("tests", resultsArr);
+            JsonObject BlisData = HumaCount60TSData.build();
+            StringWriter strWtr = new StringWriter();
+            JsonWriter jsonWtr = Json.createWriter(strWtr);
+            jsonWtr.writeObject(BlisData);
+            jsonWtr.close();
+            System.out.println("Blis Data"+ strWtr.toString());
+            //str = str.replace("/null","");        
+            
+            if(SaveResults(strWtr.toString()))
+            {
+                flag = true;
+            }
             // when is this flag applicable
             if(flag)
             {
@@ -169,11 +179,11 @@ public class HumaCount60TS extends Thread {
          
          return equipmentID;
      }
-    private static boolean SaveResults(String PatientID, String str)
+    private static boolean SaveResults(String blisdata)
      {
           boolean flag = false;
           String testtypeid = getSpecimenFilter(1);
-          if("1".equals(BLIS.blis.saveHResults(PatientID,str)))
+          if("1".equals(BLIS.blis.sendResults(blisdata)))
             {
               flag = true;
             }
