@@ -28,6 +28,7 @@ import system.settings;
 import system.utilities;
 import ui.MainForm;
 import java.util.Arrays;
+import javax.json.*;
 
 /**
  *
@@ -50,19 +51,6 @@ public class GeneXpert extends Thread{
     boolean stopped = false;
     //Queue<String> InQueue=new LinkedList<>();
     private static final char CARRIAGE_RETURN = 13;
-    
-    /*
-    private static final char STX = 002;
-    private static final char ACK = 006;
-    private static final char EOT = 004;
-    private static final char NAK = 001;
-    private static final char NUL = 000;
-    private static final char ENQ = 005;
-    private static final char ETX = 003;
-    private static final char CR = 013;
-    private static final char LF = 010;
-    private static final char ETB = 023;
-    */
     
     private static final char STX = 0x02;
     private static final char ACK = 0x06;
@@ -431,7 +419,13 @@ public class GeneXpert extends Thread{
                                     {   
                                         if(msgParts[resultslocs[i]].split("\\|")[0].endsWith("R"))
                                         {*/
-                                    String[] GeneXpertresults = new String[51];
+                                    JsonObjectBuilder GeneXpertData = Json.createObjectBuilder();
+                                    GeneXpertData.add("username", ""+settings.BLIS_USERNAME+"");
+                                    GeneXpertData.add("password", ""+settings.BLIS_PASSWORD+"");
+                                    GeneXpertData.add("Instrument", "GeneXpert");
+                                    GeneXpertData.add("Specimen_id", SampleID);
+
+                                    JsonArrayBuilder ResultsArray = Json.createArrayBuilder();
                                     int arrayloc = 0;
                                     for(int i=6;i<=51;i++)
                                     {
@@ -446,12 +440,8 @@ public class GeneXpert extends Thread{
                                                 try
                                                 {
                                                 value = msgParts[resultslocs[1]].split("\\|")[5];
-                                                System.out.println("SampleID" + SampleID);
-                                                System.out.println("mID" + mID);
-                                                System.out.println("value" + value);
-                                                
                                                 value = value.replace("^", "");
-                                                GeneXpertresults[arrayloc] = mID+":"+value;
+                                                ResultsArray.add(Json.createObjectBuilder().add("test_id", ""+mID+"").add("value", ""+value+"").build());
                                                
                                                 arrayloc++;
                                                 
@@ -459,12 +449,16 @@ public class GeneXpert extends Thread{
                                                 catch(ArrayIndexOutOfBoundsException ex){ value = "";}
                                             }
                                     }
-                                    String str = Arrays.toString(GeneXpertresults);
-                                    str = str.replace(" ","");
-                                    str = str.replace(",","/");
-                                    System.out.println("str " + str);
+                                    JsonArray resultsArr = ResultsArray.build();
+                                    GeneXpertData.add("tests", resultsArr);
+                                    JsonObject BlisData = GeneXpertData.build();
+                                    StringWriter strWtr = new StringWriter();
+                                    JsonWriter jsonWtr = Json.createWriter(strWtr);
+                                    jsonWtr.writeObject(BlisData);
+                                    jsonWtr.close();
+                                    System.out.println("Blis Data"+ strWtr.toString());
                                     
-                                    if(SaveResults(SampleID,str))
+                                    if(SaveResults(strWtr.toString()))
                                     {
                                         flag = true;
                                     }
@@ -682,11 +676,11 @@ public class GeneXpert extends Thread{
          return equipmentID;
      }
      
-    private static boolean SaveResults(String SampleID, String str)
+    private static boolean SaveResults(String blisdata)
      {  
          boolean flag = false;       
           //String testtypeid = getSpecimenFilter(1);
-          if("1".equals(BLIS.blis.saveGResults(SampleID,str)))
+          if("1".equals(BLIS.blis.sendResults(blisdata)))
            {
               flag = true;
             }
