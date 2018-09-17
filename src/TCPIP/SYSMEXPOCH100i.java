@@ -22,6 +22,7 @@ import system.utilities;
 import java.text.DecimalFormat;
 import ui.MainForm;
 import java.util.Arrays;
+import javax.json.*;
 
 /**
  *
@@ -224,8 +225,16 @@ public class SYSMEXPOCH100i extends Thread{
             //String[] DataParts = normalizeData(msgParts[0].substring(78,172));
             String[] DataParts = normalizeData(msgParts[0].substring(76,170));
             System.out.println("parts " +DataParts.length);
+            
+            JsonObjectBuilder SYSMEXPOCH100iData = Json.createObjectBuilder();
+            SYSMEXPOCH100iData.add("username", ""+settings.BLIS_USERNAME+"");
+            SYSMEXPOCH100iData.add("password", ""+settings.BLIS_PASSWORD+"");
+            SYSMEXPOCH100iData.add("Instrument", "SYSMEX pocH-100i");
+            SYSMEXPOCH100iData.add("Specimen_id", PatientID);
+
+            JsonArrayBuilder ResultsArray = Json.createArrayBuilder();
             int arrayloc = 0;
-            String[] poCHresults = new String[DataParts.length-1];
+            //String[] poCHresults = new String[DataParts.length-1];
             for(int i=0;i<DataParts.length;i++)
             {
                 mID = getMeasureID(i);
@@ -234,10 +243,7 @@ public class SYSMEXPOCH100i extends Thread{
                     try
                     {
                         value = Float.parseFloat(DataParts[i].trim());
-                        System.out.println("PatientID "+ PatientID);
-                        System.out.println("mid "+ mID);
-                        System.out.println("value "+ value);
-                        poCHresults[arrayloc] = mID+":"+value;      
+                        ResultsArray.add(Json.createObjectBuilder().add("test_id", ""+mID+"").add("value", ""+value+"").build());      
                         arrayloc++;
                     }catch(NumberFormatException e){
                         try{
@@ -246,12 +252,17 @@ public class SYSMEXPOCH100i extends Thread{
                     }
                 }
             }
-            String str = Arrays.toString(poCHresults);
-            str = str.replace(" ","");
-            str = str.replace(",","/");
-            System.out.println("str "+ str);
             
-            if(SaveResults(PatientID, str))
+            JsonArray resultsArr = ResultsArray.build();
+            SYSMEXPOCH100iData.add("tests", resultsArr);
+            JsonObject BlisData = SYSMEXPOCH100iData.build();
+            StringWriter strWtr = new StringWriter();
+            JsonWriter jsonWtr = Json.createWriter(strWtr);
+            jsonWtr.writeObject(BlisData);
+            jsonWtr.close();
+            System.out.println("Blis Data"+ strWtr.toString());
+            
+            if(SaveResults(strWtr.toString()))
                 {
                     flag = true;
                 }
@@ -471,11 +482,11 @@ public class SYSMEXPOCH100i extends Thread{
         return equipmentID;
     }
 
-  private static boolean SaveResults(String PatientID, String str)
+  private static boolean SaveResults(String blisdata)
   {
     boolean flag = false;
     //String testtypeid = getSpecimenFilter(1);
-    if("1".equals(BLIS.blis.savePResults(PatientID,str)))
+    if("1".equals(BLIS.blis.sendResults(blisdata)))
     {
       flag = true;
     }

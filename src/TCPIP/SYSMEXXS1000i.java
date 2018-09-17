@@ -256,7 +256,7 @@ public class SYSMEXXS1000i extends Thread{
                       try
                       {   
                         value = Float.parseFloat(result);
-                        ResultsArray.add(Json.createObjectBuilder().add("mID", ""+mID+"").add("value", ""+value+"").build());
+                        ResultsArray.add(Json.createObjectBuilder().add("test_id", ""+mID+"").add("value", ""+value+"").build());
                         arrayloc++;
                       }catch(NumberFormatException e){
                         try{
@@ -273,7 +273,7 @@ public class SYSMEXXS1000i extends Thread{
                     JsonWriter jsonWtr = Json.createWriter(strWtr);
                     jsonWtr.writeObject(BlisData);
                     jsonWtr.close();
-                  System.out.println("Blis Data"+ strWtr.toString());
+                    System.out.println("Blis Data"+ strWtr.toString());
                   
                   if(SaveResults(strWtr.toString()))
                       {
