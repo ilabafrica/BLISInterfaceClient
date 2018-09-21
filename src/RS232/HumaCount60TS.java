@@ -62,8 +62,8 @@ public class HumaCount60TS extends Thread {
             JsonObjectBuilder HumaCount60TSData = Json.createObjectBuilder();
             HumaCount60TSData.add("username", ""+settings.BLIS_USERNAME+"");
             HumaCount60TSData.add("password", ""+settings.BLIS_PASSWORD+"");
-            HumaCount60TSData.add("instrument", "HUMACOUNT 60TS");
-            HumaCount60TSData.add("specimen_id", PatientID);
+            HumaCount60TSData.add("instrument", "humacount_60ts");
+            HumaCount60TSData.add("specimen_identifier", PatientID);
 
             JsonArrayBuilder ResultsArray = Json.createArrayBuilder();
             int arrayloc = 0;
@@ -88,7 +88,7 @@ public class HumaCount60TS extends Thread {
                 }
             }
             JsonArray resultsArr = ResultsArray.build();
-            HumaCount60TSData.add("tests", resultsArr);
+            HumaCount60TSData.add("sub_tests", resultsArr);
             JsonObject BlisData = HumaCount60TSData.build();
             StringWriter strWtr = new StringWriter();
             JsonWriter jsonWtr = Json.createWriter(strWtr);

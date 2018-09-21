@@ -236,8 +236,8 @@ public class SYSMEXXS1000i extends Thread{
                   JsonObjectBuilder SYSMEX1000iData = Json.createObjectBuilder();
                   SYSMEX1000iData.add("username", ""+settings.BLIS_USERNAME+"");
                   SYSMEX1000iData.add("password", ""+settings.BLIS_PASSWORD+"");
-                  SYSMEX1000iData.add("instrument", "SYSMEX XS-1000i");
-                  SYSMEX1000iData.add("specimen_id", PatientID);
+                  SYSMEX1000iData.add("instrument", "sysmex_xs_1000i");
+                  SYSMEX1000iData.add("specimen_identifier", PatientID);
                   
                   JsonArrayBuilder ResultsArray = Json.createArrayBuilder();
                   int arrayloc = 0;
@@ -267,7 +267,7 @@ public class SYSMEXXS1000i extends Thread{
                     }
                   }
                     JsonArray resultsArr = ResultsArray.build();
-                    SYSMEX1000iData.add("tests", resultsArr);
+                    SYSMEX1000iData.add("sub_tests", resultsArr);
                     JsonObject BlisData = SYSMEX1000iData.build();
                     StringWriter strWtr = new StringWriter();
                     JsonWriter jsonWtr = Json.createWriter(strWtr);

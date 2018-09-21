@@ -51,7 +51,7 @@ public class SYSMEXPOCH100i extends Thread{
   private static final char ENQ = 0x05;
   private static final char ETX = 0x03;
   private static final char CR = 0x0D;
-   private static final char LF = 0x0A;
+  private static final char LF = 0x0A;
 
   private static MODE appMode = MODE.IDLE;
   public enum  MSGTYPE
@@ -229,8 +229,8 @@ public class SYSMEXPOCH100i extends Thread{
             JsonObjectBuilder SYSMEXPOCH100iData = Json.createObjectBuilder();
             SYSMEXPOCH100iData.add("username", ""+settings.BLIS_USERNAME+"");
             SYSMEXPOCH100iData.add("password", ""+settings.BLIS_PASSWORD+"");
-            SYSMEXPOCH100iData.add("instrument", "SYSMEX pocH-100i");
-            SYSMEXPOCH100iData.add("specimen_id", PatientID);
+            SYSMEXPOCH100iData.add("instrument", "sysmex_poch_100i");
+            SYSMEXPOCH100iData.add("specimen_identifier", PatientID);
 
             JsonArrayBuilder ResultsArray = Json.createArrayBuilder();
             int arrayloc = 0;
@@ -254,7 +254,7 @@ public class SYSMEXPOCH100i extends Thread{
             }
             
             JsonArray resultsArr = ResultsArray.build();
-            SYSMEXPOCH100iData.add("tests", resultsArr);
+            SYSMEXPOCH100iData.add("sub_tests", resultsArr);
             JsonObject BlisData = SYSMEXPOCH100iData.build();
             StringWriter strWtr = new StringWriter();
             JsonWriter jsonWtr = Json.createWriter(strWtr);
