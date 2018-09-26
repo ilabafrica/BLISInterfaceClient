@@ -241,8 +241,11 @@ log.AddToDisplay.Display("reading from port",DisplayMessageType.INFORMATION);
                                 case "HUMACOUNT 60TS":
                                     HumaCount60TS.HandleDataInput(buffer);
                                     break;
+                                case "CELLTAC FMEK":
+                                    CelltacFMek.HandleDataInput(buffer);
+                                    break;
                                 case "BT3000PLUSCHAMELEON":
-                                    BT3000PlusChameleon.HandleDataInput(buffer);
+                                    //BT3000PlusChameleon.HandleDataInput(buffer);
                                     break;
                                 case "FLEXOR E":
                                     FlexorE.HandleDataInput(buffer);

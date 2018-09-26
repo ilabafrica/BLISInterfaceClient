@@ -10,7 +10,7 @@
  */
 package ui;
 
-import  RS232.*;
+import RS232.*;
 import TCPIP.*;
 import MSACCESS.*;
 import TEXT.BDFACSCalibur;
@@ -67,6 +67,7 @@ public class MainForm extends javax.swing.JFrame {
     CobasAmpliPrep cobasObj = null;
     MindrayBC3600 minbc3600obj = null;
     HumaCount60TS humcnt60tsobj = null;
+    CelltacFMek celltacfobj = null;
     GeneXpert expobj = null;
     SYSMEXXT2000i sys2000iObj = null;
     FlexorE flexObj = null;
@@ -484,6 +485,9 @@ public class MainForm extends javax.swing.JFrame {
                       case "MINDRAY BC 3600":                        
                         minbc3600obj.Stop();
                         break;
+                      case "CELLTAC FMEK":                        
+                        celltacfobj.Stop();
+                        break;
                       case "HUMACOUNT 60TS":                        
                         humcnt60tsobj.Stop();
                         break;
@@ -580,7 +584,10 @@ public class MainForm extends javax.swing.JFrame {
                     case "HUMACOUNT 60TS":
                         humcnt60tsobj = new HumaCount60TS();
                         humcnt60tsobj.start();
-                        break;     
+                        break;
+                    case "CELLTAC FMEK":
+                        celltacfobj = new CelltacFMek();
+                        celltacfobj.start();
                     case "BT3000 PLUS-CHAMELEON":
                           btRSobj = new RS232.BT3000PlusChameleon();
                           btRSobj.start();

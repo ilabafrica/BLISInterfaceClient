@@ -84,235 +84,235 @@ public class BT3000PlusChameleon extends Thread {
       public static String order ="";
      // static ManageTimeOut tmObj = null;
       
-  @Override
-    public void run() {
-        log.AddToDisplay.Display("BT 3000Plus Chameleon handler started...", DisplayMessageType.TITLE);
-        log.AddToDisplay.Display("Checking available ports on this system...", DisplayMessageType.INFORMATION);
-        String[] ports = Manager.getSerialPorts();
-        log.AddToDisplay.Display("Avaliable ports:", DisplayMessageType.TITLE);
-       for(int i = 0; i < ports.length; i++){           
-           log.AddToDisplay.Display(ports[i],log.DisplayMessageType.INFORMATION);
-        }            
-       log.AddToDisplay.Display("Now connecting to port "+RS232Settings.COMPORT , DisplayMessageType.TITLE);
-       if(Manager.openPortforData("BT3000PlusChameleon"))
-       {
-           log.AddToDisplay.Display("Connected sucessfully",DisplayMessageType.INFORMATION);   
-           setTestIDs();
-       }      
-      
-    }
+//  @Override
+//    public void run() {
+//        log.AddToDisplay.Display("BT 3000Plus Chameleon handler started...", DisplayMessageType.TITLE);
+//        log.AddToDisplay.Display("Checking available ports on this system...", DisplayMessageType.INFORMATION);
+//        String[] ports = Manager.getSerialPorts();
+//        log.AddToDisplay.Display("Avaliable ports:", DisplayMessageType.TITLE);
+//       for(int i = 0; i < ports.length; i++){           
+//           log.AddToDisplay.Display(ports[i],log.DisplayMessageType.INFORMATION);
+//        }            
+//       log.AddToDisplay.Display("Now connecting to port "+RS232Settings.COMPORT , DisplayMessageType.TITLE);
+//       if(Manager.openPortforData("BT3000PlusChameleon"))
+//       {
+//           log.AddToDisplay.Display("Connected sucessfully",DisplayMessageType.INFORMATION);   
+//           setTestIDs();
+//       }      
+//      
+//    }
     
-    public static void HandleDataInput(String data)
-    {       
-        datarecieved.append(data);
-        if(datarecieved.toString().contains(End_Block+CR+ETX))
-        {
-             int endindex = datarecieved.toString().indexOf(String.valueOf(End_Block+CR+ETX));
-             if(endindex > 0)
-             {
-                processMessage(datarecieved.toString().substring(0,endindex));
-             }
-             String temp = datarecieved.substring(endindex);
-             datarecieved = new StringBuilder();
-             if(temp.length()> 0)
-             {                
-                 if(!temp.startsWith(End_Block))
-                    HandleDataInput(temp);                
-             }     
-             
-        }        
-        
-           /* if(data.contains(String.valueOf(End_Block)))
-            {
-                int endindex = data.indexOf(String.valueOf(End_Block));
-                datarecieved.append(data.substring(0, endindex));
-                processMessage();
-                datarecieved = new StringBuilder();
-                if(data.substring(endindex).length()> 1)
-                {
-                    if(data.startsWith(String.valueOf(End_Block)))
-                        HandleDataInput(data.substring(endindex+2));
-                    else                        
-                        HandleDataInput(data.substring(endindex));
-                }
-            }
-            else
-            {
-                datarecieved.append(data);
-            }*/
-           
-    }
-    public void getFromBlis(String barcode)
-     {   
-         
-       getBLISTests(barcode,true);
-        
-     }
-    
-    private static void getBLISTests(String specimen_id, boolean flag)
-     {
-         try
-         {
-            String data = BLIS.blis.getSampleData(specimen_id,"","",getSpecimenFilter(2), getSpecimenFilter(4));
-            List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
-            SampleList = SampleDataJSON.normaliseResults(SampleList);
-            if(SampleList.size() > 0)
-            {            
-                for (int i=0;i<SampleList.size();i++) 
-                {  
-                       
-                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).specimen_id + " to BT 3000Plus Chameleon",DisplayMessageType.INFORMATION);
-                       prepare(SampleList.get(i));
-                       appState = MSGMODE.WAIT_FOR_ACK;
-                       order = String.valueOf(ENQ);
-                      Manager.writeToSerialPort(ENQ);  
-                      //tmObj = new ManageTimeOut();
-                      //tmObj.start();                        
-                      
-                      
-                       
-                }
-
-            }
-             else
-              {
-                 // AddtoQueue(null, query);
-                 if(flag)                         
-                   log.AddToDisplay.Display("Sample with barcode: "+specimen_id +" does not exist in BLIS",DisplayMessageType.WARNING);
-             }
-         }catch(Exception ex)
-         {
-             log.AddToDisplay.Display("Error: "+ex.getMessage(),DisplayMessageType.ERROR);
-             log.logger.PrintStackTrace(ex);
-         }
-     }
-    
-    private static void prepare(sampledata get)
-   {
-      
-       PatientTest.clear();
-       StringBuffer strData = new StringBuffer();
-       strData.append(STX); 
-       StringBuffer strTemp = new StringBuffer();
-       strTemp.append("1H|\\^&|||LIS|||||||P|E1394-97|"); 
-       strTemp.append(utilities.getSystemDate("yyyyMMddHHmmss"));
-       strTemp.append(CR);
-       strTemp.append(ETX);       
-       strData.append(strTemp.toString());
-       strData.append(utilities.getCheckSum(strTemp.toString()));
-       strData.append(CR);
-       strData.append(LF);       
-       PatientTest.add(strData.toString());
-       strData = new StringBuffer();
-       strTemp = new StringBuffer();       
-       strData.append(STX);      
-       strTemp.append("2P|1||");
-       strTemp.append(get.patient_id);
-       strTemp.append("||");
-       strTemp.append(get.patient_name.trim().replaceFirst(" ", "^"));
-       strTemp.append("||");
-       String[] parts = utilities.getNormalizedDate(get.dob).split("-");
-       strTemp.append(parts[0]).append(parts[1]).append(parts[2]);
-       strTemp.append("|");
-       strTemp.append(get.gender);
-       strTemp.append("|||||||||||||||||");          
-       strTemp.append("OPD");
-       strTemp.append(CR);
-       strTemp.append(ETX);       
-       strData.append(strTemp.toString());
-       strData.append(utilities.getCheckSum(strTemp.toString()));
-       strData.append(CR);
-       strData.append(LF); 
-       PatientTest.add(strData.toString());
-       strData = new StringBuffer();
-       strTemp = new StringBuffer();      
-       strData.append(STX);       //4O|1|SID007||^^^CBC|R||||||A<CR><ETX>04<CR><LF>;
-       strTemp.append("3O|1|");      
-       strTemp.append(get.specimen_id);
-       strTemp.append("||");
-       strTemp.append("^^^DIF");
-       strTemp.append("|R||||||A");            
-       strTemp.append(CR);
-       strTemp.append(ETX);
-       strData.append(strTemp.toString());
-       strData.append(utilities.getCheckSum(strTemp.toString()));
-       strData.append(CR);
-       strData.append(LF); 
-       PatientTest.add(strData.toString());
-       strData = new StringBuffer();
-       strTemp = new StringBuffer();       
-       strData.append(STX);   
-       strTemp.append("4L|1|N");    
-       strTemp.append(CR);
-       strTemp.append(ETX);
-       strData.append(strTemp.toString());
-       strData.append(utilities.getCheckSum(strTemp.toString()));
-       strData.append(CR);
-       strData.append(LF); 
-       PatientTest.add(strData.toString());
-       strData = new StringBuffer();
-       strData.append(EOT);
-       PatientTest.add(strData.toString());
-            
-   }
-    private static void processMessage( String Data)
-    {
-        try
-        {
-             String[] msgParts = Data.split("\r"+ETX);
-                String pidParts[] = msgParts[1].split("\\|");
-                if(pidParts.length > 5)
-                {
-                    String patientid = pidParts[3].trim();
-                    String SampleID = msgParts[2].split("\\|")[2].trim();
-                    //SampleID = utilities.getSystemDate("YYYY") + SampleID;
-                    //SampleID =  patientid;
-                    int mID=0;
-                    float value = 0;
-                    boolean flag = false;
-                    for(int i=3;i<msgParts.length-1;i++)
-                    {
-                        if(msgParts[i].split("\\|")[0].endsWith("R"))
-                        {
-                            mID = getMeasureID(msgParts[i].split("\\|")[2].split("\\^")[3].trim());
-                            if(mID > 0)
-                            {
-                                try
-                                {
-                                    value = Float.parseFloat(msgParts[i].split("\\|")[3]);
-                                }catch(NumberFormatException e){
-                                    try{
-                                    value = 0;
-                                    }catch(NumberFormatException ex){}
-
-                                }
-                                if(SaveResults(SampleID, mID,value))
-                                {
-                                    flag = true;
-                                }
-                            }
-                        }
-                    }
-                     if(flag)
-                        {
-                             log.AddToDisplay.Display("\nResults with Code: "+SampleID +" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
-                        }
-                        else
-                        {
-                             log.AddToDisplay.Display("\nTest with Code: "+SampleID +" not Found on BLIS",DisplayMessageType.WARNING);
-                        }
-
-
-                }
-                else
-                {
-                    log.AddToDisplay.Display("QC or BACKGROUND CHECK information Skipped",DisplayMessageType.INFORMATION);
-                }
-        }catch(Exception ex)
-        {
-            log.AddToDisplay.Display("Error:"+ex.getMessage(),DisplayMessageType.ERROR);
-        }
-    }
+//    public static void HandleDataInput(String data)
+//    {       
+//        datarecieved.append(data);
+//        if(datarecieved.toString().contains(End_Block+CR+ETX))
+//        {
+//             int endindex = datarecieved.toString().indexOf(String.valueOf(End_Block+CR+ETX));
+//             if(endindex > 0)
+//             {
+//                processMessage(datarecieved.toString().substring(0,endindex));
+//             }
+//             String temp = datarecieved.substring(endindex);
+//             datarecieved = new StringBuilder();
+//             if(temp.length()> 0)
+//             {                
+//                 if(!temp.startsWith(End_Block))
+//                    HandleDataInput(temp);                
+//             }     
+//             
+//        }        
+//        
+//           /* if(data.contains(String.valueOf(End_Block)))
+//            {
+//                int endindex = data.indexOf(String.valueOf(End_Block));
+//                datarecieved.append(data.substring(0, endindex));
+//                processMessage();
+//                datarecieved = new StringBuilder();
+//                if(data.substring(endindex).length()> 1)
+//                {
+//                    if(data.startsWith(String.valueOf(End_Block)))
+//                        HandleDataInput(data.substring(endindex+2));
+//                    else                        
+//                        HandleDataInput(data.substring(endindex));
+//                }
+//            }
+//            else
+//            {
+//                datarecieved.append(data);
+//            }*/
+//           
+//    }
+//    public void getFromBlis(String barcode)
+//     {   
+//         
+//       getBLISTests(barcode,true);
+//        
+//     }
+//    
+//    private static void getBLISTests(String specimen_id, boolean flag)
+//     {
+//         try
+//         {
+//            String data = BLIS.blis.getSampleData(specimen_id,"","",getSpecimenFilter(2), getSpecimenFilter(4));
+//            List<sampledata> SampleList = SampleDataJSON.getSampleObject(data);
+//            SampleList = SampleDataJSON.normaliseResults(SampleList);
+//            if(SampleList.size() > 0)
+//            {            
+//                for (int i=0;i<SampleList.size();i++) 
+//                {  
+//                       
+//                       log.AddToDisplay.Display("Sending test with Code: "+SampleList.get(i).specimen_id + " to BT 3000Plus Chameleon",DisplayMessageType.INFORMATION);
+//                       prepare(SampleList.get(i));
+//                       appState = MSGMODE.WAIT_FOR_ACK;
+//                       order = String.valueOf(ENQ);
+//                      Manager.writeToSerialPort(ENQ);  
+//                      //tmObj = new ManageTimeOut();
+//                      //tmObj.start();                        
+//                      
+//                      
+//                       
+//                }
+//
+//            }
+//             else
+//              {
+//                 // AddtoQueue(null, query);
+//                 if(flag)                         
+//                   log.AddToDisplay.Display("Sample with barcode: "+specimen_id +" does not exist in BLIS",DisplayMessageType.WARNING);
+//             }
+//         }catch(Exception ex)
+//         {
+//             log.AddToDisplay.Display("Error: "+ex.getMessage(),DisplayMessageType.ERROR);
+//             log.logger.PrintStackTrace(ex);
+//         }
+//     }
+//    
+//    private static void prepare(sampledata get)
+//   {
+//      
+//       PatientTest.clear();
+//       StringBuffer strData = new StringBuffer();
+//       strData.append(STX); 
+//       StringBuffer strTemp = new StringBuffer();
+//       strTemp.append("1H|\\^&|||LIS|||||||P|E1394-97|"); 
+//       strTemp.append(utilities.getSystemDate("yyyyMMddHHmmss"));
+//       strTemp.append(CR);
+//       strTemp.append(ETX);       
+//       strData.append(strTemp.toString());
+//       strData.append(utilities.getCheckSum(strTemp.toString()));
+//       strData.append(CR);
+//       strData.append(LF);       
+//       PatientTest.add(strData.toString());
+//       strData = new StringBuffer();
+//       strTemp = new StringBuffer();       
+//       strData.append(STX);      
+//       strTemp.append("2P|1||");
+//       strTemp.append(get.patient_id);
+//       strTemp.append("||");
+//       strTemp.append(get.patient_name.trim().replaceFirst(" ", "^"));
+//       strTemp.append("||");
+//       String[] parts = utilities.getNormalizedDate(get.dob).split("-");
+//       strTemp.append(parts[0]).append(parts[1]).append(parts[2]);
+//       strTemp.append("|");
+//       strTemp.append(get.gender);
+//       strTemp.append("|||||||||||||||||");          
+//       strTemp.append("OPD");
+//       strTemp.append(CR);
+//       strTemp.append(ETX);       
+//       strData.append(strTemp.toString());
+//       strData.append(utilities.getCheckSum(strTemp.toString()));
+//       strData.append(CR);
+//       strData.append(LF); 
+//       PatientTest.add(strData.toString());
+//       strData = new StringBuffer();
+//       strTemp = new StringBuffer();      
+//       strData.append(STX);       //4O|1|SID007||^^^CBC|R||||||A<CR><ETX>04<CR><LF>;
+//       strTemp.append("3O|1|");      
+//       strTemp.append(get.specimen_id);
+//       strTemp.append("||");
+//       strTemp.append("^^^DIF");
+//       strTemp.append("|R||||||A");            
+//       strTemp.append(CR);
+//       strTemp.append(ETX);
+//       strData.append(strTemp.toString());
+//       strData.append(utilities.getCheckSum(strTemp.toString()));
+//       strData.append(CR);
+//       strData.append(LF); 
+//       PatientTest.add(strData.toString());
+//       strData = new StringBuffer();
+//       strTemp = new StringBuffer();       
+//       strData.append(STX);   
+//       strTemp.append("4L|1|N");    
+//       strTemp.append(CR);
+//       strTemp.append(ETX);
+//       strData.append(strTemp.toString());
+//       strData.append(utilities.getCheckSum(strTemp.toString()));
+//       strData.append(CR);
+//       strData.append(LF); 
+//       PatientTest.add(strData.toString());
+//       strData = new StringBuffer();
+//       strData.append(EOT);
+//       PatientTest.add(strData.toString());
+//            
+//   }
+//    private static void processMessage( String Data)
+//    {
+//        try
+//        {
+//             String[] msgParts = Data.split("\r"+ETX);
+//                String pidParts[] = msgParts[1].split("\\|");
+//                if(pidParts.length > 5)
+//                {
+//                    String patientid = pidParts[3].trim();
+//                    String SampleID = msgParts[2].split("\\|")[2].trim();
+//                    //SampleID = utilities.getSystemDate("YYYY") + SampleID;
+//                    //SampleID =  patientid;
+//                    int mID=0;
+//                    float value = 0;
+//                    boolean flag = false;
+//                    for(int i=3;i<msgParts.length-1;i++)
+//                    {
+//                        if(msgParts[i].split("\\|")[0].endsWith("R"))
+//                        {
+//                            mID = getMeasureID(msgParts[i].split("\\|")[2].split("\\^")[3].trim());
+//                            if(mID > 0)
+//                            {
+//                                try
+//                                {
+//                                    value = Float.parseFloat(msgParts[i].split("\\|")[3]);
+//                                }catch(NumberFormatException e){
+//                                    try{
+//                                    value = 0;
+//                                    }catch(NumberFormatException ex){}
+//
+//                                }
+//                                if(SaveResults(SampleID, mID,value))
+//                                {
+//                                    flag = true;
+//                                }
+//                            }
+//                        }
+//                    }
+//                     if(flag)
+//                        {
+//                             log.AddToDisplay.Display("\nResults with Code: "+SampleID +" sent to BLIS sucessfully",DisplayMessageType.INFORMATION);
+//                        }
+//                        else
+//                        {
+//                             log.AddToDisplay.Display("\nTest with Code: "+SampleID +" not Found on BLIS",DisplayMessageType.WARNING);
+//                        }
+//
+//
+//                }
+//                else
+//                {
+//                    log.AddToDisplay.Display("QC or BACKGROUND CHECK information Skipped",DisplayMessageType.INFORMATION);
+//                }
+//        }catch(Exception ex)
+//        {
+//            log.AddToDisplay.Display("Error:"+ex.getMessage(),DisplayMessageType.ERROR);
+//        }
+//    }
     
     public void Stop()
     {
