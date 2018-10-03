@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ASLM-LIS HO Configuration -->
+<configuration>
+	<supportedtestTypes>
+		<testtype>		
+			<testtypeid>22</testtypeid>
+			<testtypename>RFTs</testtypename>
+		</testtype>
+	</supportedtestTypes>
+	<supportedsamples>		
+		<sample>
+			<equipmentsampleid>1</equipmentsampleid>
+			<lissampleid>23</lissampleid>
+			<samplename>Whole Blood</samplename>
+		</sample>		
+	</supportedsamples>
+	<supportedtests>		
+		<listest>
+			<equipmenttestid>19</equipmenttestid>
+			<listestid>75</listestid>
+			<listestname>'BUN'</listestname>
+		</listest>
+		<listest>
+			<equipmenttestid>20</equipmenttestid>
+			<listestid>76</listestid>
+			<listestname>'CRE'</listestname>
+		</listest>
+		<listest>
+			<equipmenttestid>21</equipmenttestid>
+			<listestid>77</listestid>
+			<listestname>'GT'</listestname>
+		</listest>
+		<listest>
+			<equipmenttestid>22</equipmenttestid>
+			<listestid>78</listestid>
+			<listestname>'TRI'</listestname>
+		</listest>
+	</supportedtests>
+</configuration>

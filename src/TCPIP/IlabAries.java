@@ -26,8 +26,10 @@ import javax.json.*;
 
 /**
  *
+ * @author benjamin
  */
-public class SYSMEXXS1000i extends Thread{
+
+public class IlabAries extends Thread{
 
   String read;
   boolean first =true;
@@ -51,11 +53,11 @@ public class SYSMEXXS1000i extends Thread{
   private static final char ENQ = 0x05;
   private static final char ETX = 0x03;
   private static final char CR = 0x0D;
-   private static final char LF = 0x0A;
+  private static final char LF = 0x0A;
 
-  private static MODE appMode = MODE.IDLE;
-  public enum  MSGTYPE
-  {
+  private static MODE appMode = MODE.IDLE;   
+  
+  public enum  MSGTYPE{
     QUERY(0),
     RESULTS(1),
     ACK_RECEIVED(2),
@@ -67,72 +69,58 @@ public class SYSMEXXS1000i extends Thread{
     ETX(8),
     UNKNOWN(-1);
 
-
-    private MSGTYPE(int value)
-    {
+    private MSGTYPE(int value){
         this.Value = value;
     }
 
     private int Value;
 
   }
-
-   enum MODE
-  {
+  enum MODE{
        SENDING_QUERY,
        RECEIVEING_RESULTS,
        IDLE;
   }
-  public void Stop()
-  {
+  public void Stop(){
       try {
-
           stopped = true;
           if(null != connSock)
               connSock.close();
           if(null !=welcomeSocket)
                welcomeSocket.close();
-           log.AddToDisplay.Display("SYSMEX XS-1000i handler stopped", DisplayMessageType.TITLE);
+           log.AddToDisplay.Display("Ilab Aries handler stopped", DisplayMessageType.TITLE);
       } catch (IOException ex) {
           log.logger.Logger(ex.getMessage());
       }
   }
-
+  
   @Override
   public void run() {
-        try
-        {
-          log.AddToDisplay.Display("SYSMEX XS-1000i handler started...", DisplayMessageType.TITLE);
-          if(tcpsettings.SERVER_MODE)
-          {
+        try{
+          log.AddToDisplay.Display("Ilab Aries handler started...", DisplayMessageType.TITLE);
+          if(tcpsettings.SERVER_MODE){
               log.AddToDisplay.Display("Starting Server socket on port "+tcpsettings.PORT, DisplayMessageType.INFORMATION);
               welcomeSocket = new ServerSocket(tcpsettings.PORT);
               log.AddToDisplay.Display("Waiting for Equipment connection...", DisplayMessageType.INFORMATION);
               log.AddToDisplay.Display("Listening on port "+ tcpsettings.PORT+"...",DisplayMessageType.INFORMATION);
               connSock = welcomeSocket.accept();
-          }
-          else
-          {
+          }else{
               log.AddToDisplay.Display("Starting Client socket on IP "+tcpsettings.EQUIPMENT_IP +" on port  "+tcpsettings.PORT, DisplayMessageType.INFORMATION);
-             connSock = new Socket(tcpsettings.EQUIPMENT_IP, tcpsettings.PORT);
+              connSock = new Socket(tcpsettings.EQUIPMENT_IP, tcpsettings.PORT);
           }
-          log.AddToDisplay.Display("SYSMEX XS-1000i is now Connected...",DisplayMessageType.INFORMATION);
+          log.AddToDisplay.Display("Ilab Aries is now Connected...",DisplayMessageType.INFORMATION);
           first=false;
-          if(!tcpsettings.SERVER_MODE)
-          {
+          if(!tcpsettings.SERVER_MODE){
               connSock.setKeepAlive(true);
           }
-          ClientThread client = new ClientThread(connSock,"SYSMEX XS-1000i");
+          ClientThread client = new ClientThread(connSock,"Ilab Aries");
           client.start();
-          String message ;
+          String message;
           outToEquipment= new DataOutputStream(connSock.getOutputStream());
-           setTestIDs();
-          while(!stopped)
-          {
-            synchronized(OutQueue)
-            {
-              while(!OutQueue.isEmpty())
-              {System.out.println("Try 2");
+          setTestIDs();
+          while(!stopped){
+            synchronized(OutQueue){
+              while(!OutQueue.isEmpty()){
                 System.out.println("Message found in sending queue");
                 log.AddToDisplay.Display("Message found in sending queue",DisplayMessageType.TITLE);
                 //log.logger.Logger("Message found in sending queue");
@@ -145,130 +133,116 @@ public class SYSMEXXS1000i extends Thread{
             }
           }
         }
-        catch(IOException e)
-        {
-            if(first)
-            {
+        catch(IOException e){
+            if(first){
               if(tcpsettings.SERVER_MODE)
                   log.AddToDisplay.Display("could not listen on port :"+tcpsettings.PORT + " "+e.getMessage(),DisplayMessageType.ERROR);
               else
                   log.AddToDisplay.Display("could not connect to server: "+tcpsettings.EQUIPMENT_IP+" on port :"+tcpsettings.PORT + " "+e.getMessage(),DisplayMessageType.ERROR);
              // log.logger.Logger(e.getMessage());
-            }
-            else
-            {
-              log.AddToDisplay.Display("SYSMEX XS-1000i client is now disconnected!",DisplayMessageType.WARNING);
+            }else{
+              log.AddToDisplay.Display("Ilab Aries client is now disconnected!",DisplayMessageType.WARNING);
               log.logger.Logger(e.getMessage());
             }
          }
       }
-
-    private static void resetCon()
-    {
+    private static void resetCon(){
       //
     }
 
-  private static void AddtoQueue(char value)
-  {
-    synchronized(OutQueue)
-    {
-      OutQueue.add(String.valueOf(value));
+    private static void AddtoQueue(char value){
+        synchronized(OutQueue){
+            OutQueue.add(String.valueOf(value));
+        }
     }
-  }
-
-    private static void AddtoQueue(String data)
-    {
-      synchronized(OutQueue)
-      {
+    
+    private static void AddtoQueue(String data){
+      synchronized(OutQueue){
         OutQueue.add(data);
         log.logger.Logger("New message added to sending queue\n"+data);
       }
     }
-
-    public static void handleMessage(String message)
-    {
-      synchronized(MainForm.set)
-        {
+    
+    public static void handleMessage(String message){
+      synchronized(MainForm.set){
           MainForm.set = MainForm.RESET.WAIT;
         }
-        try
-        {
+      try{
           //String[] msgParts = message.split("\r");
           MSGTYPE type =getMessageType(message);
-          if(type == MSGTYPE.ENQ)
-          {
+          if(type == MSGTYPE.ENQ){
             AddtoQueue(ACK);
             ASTMMsgs="";
             appMode = MODE.RECEIVEING_RESULTS;
-          }
-          else if(type == MSGTYPE.STX)
-          {
-              AddtoQueue(ACK);
-             ASTMMsgs = ASTMMsgs + "\r"+message;
-             appMode = MODE.RECEIVEING_RESULTS;
-
-          }
-          else if (type == MSGTYPE.EOT)
-          {
+          }else if(type == MSGTYPE.STX){
+            AddtoQueue(ACK);
+            ASTMMsgs = ASTMMsgs + "\n"+message;
+            appMode = MODE.RECEIVEING_RESULTS;
+          }else if (type == MSGTYPE.EOT){
               ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(STX)+"[\\d]", "");
               ASTMMsgs = ASTMMsgs.replaceAll(String.valueOf(ETX)+String.valueOf(CR), "");
-              String[] msgParts = ASTMMsgs.trim().split("\r");
-              String firstRecord[] = msgParts[1].split("\\|");
-              if(firstRecord.length > 5)
-              {
+              String[] msgParts = ASTMMsgs.trim().split("\n");
+              System.out.println("Total parts "+ msgParts.length);
+              for(int a=1;a<=msgParts.length;a++){
+                  String firstRecord[] = msgParts[a].split("\\|");
+                  
+              if( "P".equals(firstRecord[0].trim())){
                 String recordType = firstRecord[0].trim();
+              
                 String PatientID = "";
-                int mID=0;
+                String mID;
                 float value = 0;
                 boolean flag = false;
                 // if not functional really hoping to sort it out though
-                if (recordType.equalsIgnoreCase("Q")) {
+                if (recordType.equalsIgnoreCase("Q")){
                   log.AddToDisplay.Display("\nIdentified as a query for alis! ",DisplayMessageType.INFORMATION);
 
                   // this command initiates and fetching of pending requests from ALIS and sends to IPU(Sysmex Software[api])
                   log.AddToDisplay.Display("\nSamples from ALIS Sent to IPU",DisplayMessageType.INFORMATION);
 
                 }else{
-                  String patientIdParts[] = msgParts[1].split("\\|");
+                  String patientIdParts[] = msgParts[a].split("\\|");
                   // patient Id
-                  PatientID =  patientIdParts[4].trim();
-                  
-                  JsonObjectBuilder SYSMEX1000iData = Json.createObjectBuilder();
-                  SYSMEX1000iData.add("username", ""+settings.BLIS_USERNAME+"");
-                  SYSMEX1000iData.add("password", ""+settings.BLIS_PASSWORD+"");
-                  SYSMEX1000iData.add("instrument", "sysmex_xs_1000i");
-                  SYSMEX1000iData.add("specimen_identifier", PatientID);
+                  PatientID =  patientIdParts[2].trim();
+                  JsonObjectBuilder IlabAriesData = Json.createObjectBuilder();
+                  IlabAriesData.add("username", ""+settings.BLIS_USERNAME+"");
+                  IlabAriesData.add("password", ""+settings.BLIS_PASSWORD+"");
+                  IlabAriesData.add("instrument", "ilab_aries");
+                  IlabAriesData.add("specimen_identifier", PatientID);
                   
                   JsonArrayBuilder ResultsArray = Json.createArrayBuilder();
-                  int arrayloc = 0;
+                  
                   // restrict string manupulation to actual results only
-                  for(int i=5;i<29;i++){
-                    // measure id of the instrument, now get mmeasure id of LIS
-                    mID = Integer.parseInt(msgParts[i].split("\\|")[1]);
-                    //mID = getMeasureID(msgParts[i].split("\\|")[1]);
-                    if(mID > 0){
+                  for(int i=a+1;i<msgParts.length;i++){
+                      String firstR[] = msgParts[i].split("\\|");
+                        if("O".equals(firstR[0].trim())){
+                            continue;
+                        }else if("R".equals(firstR[0].trim())){
+                            // measure id of the instrument, now get mmeasure id of LIS
+                            mID = msgParts[i].split("\\|")[2];
+                            //mID = getMeasureID(msgParts[i].split("\\|")[1]);
+                              String rawResult = "";
+                              // actual result
+                              rawResult = msgParts[i].split("\\|")[3];
+                              String result = rawResult;
+                              try{
+                                value = Float.parseFloat(result);
+                                ResultsArray.add(Json.createObjectBuilder().add("test_id", ""+mID+"").add("value", ""+value+"").build());
 
-                      String rawResult = "";
-                      // actual result
-                      rawResult = msgParts[i].split("\\|")[3];
-                      String result = rawResult;
-
-                      try
-                      {   
-                        value = Float.parseFloat(result);
-                        ResultsArray.add(Json.createObjectBuilder().add("test_id", ""+mID+"").add("value", ""+value+"").build());
-                        arrayloc++;
-                      }catch(NumberFormatException e){
-                        try{
-                          value = 0;
-                        }catch(NumberFormatException ex){}
-                      }
-                      
+                              }catch(NumberFormatException e){
+                                try{
+                                  value = 0;
+                                }catch(NumberFormatException ex){}
+                              }
+                              continue;
+                        }else if("P".equals(firstRecord[0].trim())){
+                              break;
+                        }
+                    
                     }
-                  }
                     JsonArray resultsArr = ResultsArray.build();
-                    SYSMEX1000iData.add("sub_tests", resultsArr);
-                    JsonObject BlisData = SYSMEX1000iData.build();
+                    IlabAriesData.add("sub_tests", resultsArr);
+                    JsonObject BlisData = IlabAriesData.build();
                     StringWriter strWtr = new StringWriter();
                     JsonWriter jsonWtr = Json.createWriter(strWtr);
                     jsonWtr.writeObject(BlisData);
@@ -294,19 +268,16 @@ public class SYSMEXXS1000i extends Thread{
               {
                   log.AddToDisplay.Display("QC or BACKGROUND CHECK information Skipped",DisplayMessageType.INFORMATION);
               }
+              }
               appMode = MODE.IDLE;
               synchronized(MainForm.set)
               {
                 MainForm.set = MainForm.RESET.NOW;
               }
 
-          }
-          else if (type == MSGTYPE.NAK)
-          {
+          }else if (type == MSGTYPE.NAK){
             log.AddToDisplay.Display("NAK Response from Analyzer",DisplayMessageType.ERROR);
-          }
-          else if(type == MSGTYPE.ACK)
-          {
+          }else if(type == MSGTYPE.ACK){
             if(appMode == MODE.SENDING_QUERY)
             {
                 if(PatientTest.size()>0)
@@ -332,12 +303,9 @@ public class SYSMEXXS1000i extends Thread{
           log.logger.PrintStackTrace(ex);
       }
     }
-
-    private static MSGTYPE getMessageType(String msg)
-    {
+    private static MSGTYPE getMessageType(String msg){
         MSGTYPE type = null;
-        switch (msg.charAt(0))
-        {
+        switch (msg.charAt(0)){
             case ACK:
                 type = MSGTYPE.ACK;
                 break;
@@ -359,85 +327,41 @@ public class SYSMEXXS1000i extends Thread{
             default:
                 String[] parts = msg.split("\r");
                 // todo: dont understand the functions of this
-                if(parts.length > 1 )
-                {
-                    if(parts[1].startsWith("Q|"))
-                    {
+                if(parts.length > 1 ){
+                    if(parts[1].startsWith("Q|")){
                         type= MSGTYPE.QUERY;
-                    }
-                    else if (parts[1].startsWith("P|"))
-                    {
+                    }else if (parts[1].startsWith("P|")){
                         type = MSGTYPE.RESULTS;
-                    }
-                    else
-                    {
+                    }else{
                         type =MSGTYPE.UNKNOWN;
                     }
                 }
         }
         return type;
     }
-
-     private void setTestIDs()
-     {
+    private void setTestIDs(){
+        
          String equipmentid = getSpecimenFilter(3);
          String blismeasureid = getSpecimenFilter(4);
-
          String[] equipmentids = equipmentid.split(",");
          String[] blismeasureids = blismeasureid.split(",");
-         for(int i=0;i<equipmentids.length;i++)
-         {
+         for(int i=0;i<equipmentids.length;i++){
              testIDs.add(equipmentids[i]+";"+blismeasureids[i]);
          }
-     }
-
-    private static String getSpecimenFilter(int whichdata)
-    {
+    }
+    private static String getSpecimenFilter(int whichdata){
         String data = "";
         xmlparser p = new xmlparser("configs/SYSMEX/SYSMEXXS1000i.xml");
         try {
             data = p.getMicros60Filter(whichdata);
         } catch (Exception ex) {
-            Logger.getLogger(SYSMEXXS1000i.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(IlabAries.class.getName()).log(Level.SEVERE, null, ex);
             log.logger.PrintStackTrace(ex);
             log.AddToDisplay.Display(ex.getMessage(), log.DisplayMessageType.ERROR);
         }
         return data;
     }
-
-/*
-     private static int getMeasureID(String equipmentID)
-     {
-         int measureid = 0;
-         for(int i=0;i<testIDs.size();i++)
-         {
-             if(testIDs.get(i).split(";")[0].equalsIgnoreCase(equipmentID))
-             {
-                 measureid = Integer.parseInt(testIDs.get(i).split(";")[1]);
-                 break;
-             }
-         }
-         return measureid;
-     }
-    */
-     
-     /*private static String getEquipmentID(String measureID)
-     {
-         String equipmentID = "";
-         for(int i=0;i<testIDs.size();i++)
-         {
-             if(testIDs.get(i).split(";")[1].equalsIgnoreCase(measureID))
-             {
-                 equipmentID = testIDs.get(i).split(";")[0];
-                 break;
-             }
-         }
-
-         return equipmentID;
-     }*/
-
-  private static boolean SaveResults(String blisdata)
-  {
+  private static boolean SaveResults(String blisdata){
     boolean flag = false;
     String testtypeid = getSpecimenFilter(1);
     if("1".equals(BLIS.blis.sendResults(blisdata)))

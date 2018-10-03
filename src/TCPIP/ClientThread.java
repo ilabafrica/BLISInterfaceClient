@@ -121,6 +121,33 @@ class ClientThread extends Thread
                               break;*/
                         }
                     }
+                    else if(this.Equipmentname.equalsIgnoreCase("SYSMEX XS-1000i") || this.Equipmentname.equalsIgnoreCase("SYSMEX pocH-100i") || this.Equipmentname.equalsIgnoreCase("Ilab Aries"))
+                    {
+                        int c=0;
+                        int val;
+                        String line ="";
+                        while((val = inFromEquipment.read()) > -1)
+                        {
+                          if(val != 13)
+                          {
+                            line = line + (char)val;
+                             if((char)val == ACK || (char)val == ENQ || (char)val == NAK || (char)val == EOT || (char)val == ETX)
+                             {
+                                 read = read + line;
+                                 break;
+                             }
+                          }
+                          else
+                          {
+                             line = line + "\r";
+                             read = read + line;
+                             if(line.startsWith("L|1|N"))
+                                 break;
+                             line ="";
+                             c++;
+                          }
+                        }
+                    }
                     else if(this.Equipmentname.equalsIgnoreCase("SYSMEX XS-1000i") || this.Equipmentname.equalsIgnoreCase("SYSMEX pocH-100i"))
                     {
                         int c=0;
@@ -148,8 +175,8 @@ class ClientThread extends Thread
                           }
                         }
                     }
-                    else if(this.Equipmentname.equalsIgnoreCase("GENEXPERT"))
-                    {
+                    else if(this.Equipmentname.equalsIgnoreCase("Ilab Aries"))
+                    {System.out.println("Aries");
                         int c=0;
                         int val;
                         String line ="";
@@ -231,6 +258,9 @@ class ClientThread extends Thread
                           break;
                       case "SYSMEX XS-1000i":
                           SYSMEXXS1000i.handleMessage(read);
+                          break;
+                      case "Ilab Aries":
+                          IlabAries.handleMessage(read);
                           break;
                       case "FLEXOR JUNIOR":
                           FlexorJunior.handleMessage(read);

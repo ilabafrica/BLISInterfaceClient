@@ -72,6 +72,7 @@ public class MainForm extends javax.swing.JFrame {
     SYSMEXXT2000i sys2000iObj = null;
     FlexorE flexObj = null;
     SYSMEXXS1000i sys1000iObj = null;
+    IlabAries ilbarsObj = null;
     SYSMEXPOCH100i sys100iObj = null;
    //public static boolean reset = false;
    public static enum RESET
@@ -534,6 +535,9 @@ public class MainForm extends javax.swing.JFrame {
                     case "SYSMEX XS-1000I":
                         sys1000iObj.Stop();
                         break;
+                    case "ILAB ARIES":
+                        ilbarsObj.Stop();
+                        break;
                     case "SYSMEX POCH-100I":
                         sys100iObj.Stop();
                         break;
@@ -639,6 +643,10 @@ public class MainForm extends javax.swing.JFrame {
                     case "SYSMEX XS-1000I":                        
                         sys1000iObj = new SYSMEXXS1000i();
                         sys1000iObj.start();
+                        break;
+                    case "ILAB ARIES":                        
+                        ilbarsObj = new IlabAries();
+                        ilbarsObj.start();
                         break;
                     case "SYSMEX POCH-100I":                        
                         sys100iObj = new SYSMEXPOCH100i();
