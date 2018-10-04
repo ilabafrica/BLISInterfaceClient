@@ -67,6 +67,7 @@ public class MainForm extends javax.swing.JFrame {
     CobasAmpliPrep cobasObj = null;
     MindrayBC3600 minbc3600obj = null;
     HumaCount60TS humcnt60tsobj = null;
+    CoulterAct coltactobj = null;
     CelltacFMek celltacfobj = null;
     GeneXpert expobj = null;
     SYSMEXXT2000i sys2000iObj = null;
@@ -492,6 +493,9 @@ public class MainForm extends javax.swing.JFrame {
                       case "HUMACOUNT 60TS":                        
                         humcnt60tsobj.Stop();
                         break;
+                      case "COULTER ACT":
+                        coltactobj.Stop();
+                        break;
                       case "BT3000 PLUS-CHAMELEON":
                           btRSobj.Stop();
                           break;
@@ -589,14 +593,17 @@ public class MainForm extends javax.swing.JFrame {
                         humcnt60tsobj = new HumaCount60TS();
                         humcnt60tsobj.start();
                         break;
-                    case "CELLTAC FMEK":
-                        celltacfobj = new CelltacFMek();
-                        celltacfobj.start();
+                    case "COULTER ACT":
+                        coltactobj = new CoulterAct();
+                        coltactobj.start();
                     case "BT3000 PLUS-CHAMELEON":
                           btRSobj = new RS232.BT3000PlusChameleon();
                           btRSobj.start();
                           break;
-                     case "FLEXOR E":
+                    case "CELLTAC FMEK":
+                        celltacfobj = new CelltacFMek();
+                        celltacfobj.start();
+                    case "FLEXOR E":
                           flexObj = new FlexorE();
                           flexObj.start();
                           break;
