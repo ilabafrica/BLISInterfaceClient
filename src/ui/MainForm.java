@@ -14,6 +14,7 @@ import RS232.*;
 import TCPIP.*;
 import MSACCESS.*;
 import TEXT.BDFACSCalibur;
+import TEXT.Humastar100;
 import java.awt.AWTException;
 import java.awt.Image;
 import java.awt.MenuItem;
@@ -62,6 +63,7 @@ public class MainForm extends javax.swing.JFrame {
     RS232.BT3000PlusChameleon btRSobj = null; 
     SYSMEXXS500i sysobj = null; 
     BDFACSCalibur bdobj = null;
+    Humastar100 hmobj = null;
     SelectraJunior selobj = null;
     ABXPentra80 pentra80Obj = null;
     CobasAmpliPrep cobasObj = null;
@@ -354,7 +356,7 @@ public class MainForm extends javax.swing.JFrame {
         // TODO add your handling code here:
         //JOptionPane.showMessageDialog(null, "Form Opened");
         getConfigurations();
-        manageHandlers();
+        //manageHandlers();
         setManualActivity();
         new ResetMan().start();
     }//GEN-LAST:event_formWindowOpened
@@ -372,7 +374,7 @@ public class MainForm extends javax.swing.JFrame {
 
     private void formWindowLostFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowLostFocus
         // TODO add your handling code here:
-        setVisible(false);
+        //setVisible(false);
         item3.setLabel("Show Interface");
     }//GEN-LAST:event_formWindowLostFocus
 
@@ -396,7 +398,7 @@ public class MainForm extends javax.swing.JFrame {
         jbtnStart.setText("Stop");
         item2.setLabel("Stop");
       }
-      else
+      else if (jbtnStart.getText().equalsIgnoreCase("Stop"))
       {   
           stopAppropriateHandler();
           jbtnStart.setText("Start");
@@ -561,9 +563,11 @@ public class MainForm extends javax.swing.JFrame {
                     case "BD FACSCALIBUR":                        
                         bdobj.Stop();
                         break;
-                    
+                    case "HUMASTAR 100":
+                        hmobj.Stop();
+                        break;
                 }
-                 break;
+                break;
         }
     }
     private void startAppropriateHandler()
@@ -635,15 +639,15 @@ public class MainForm extends javax.swing.JFrame {
                         sysobj = new SYSMEXXS500i();
                         sysobj.start();
                         break;
-                     case "COBAS AMPLIPREP":
+                    case "COBAS AMPLIPREP":
                         cobasObj= new CobasAmpliPrep();
                         cobasObj.start();
                         break;
-                     case "GENEXPERT":
+                    case "GENEXPERT":
                         expobj = new GeneXpert();
                         expobj.start();
                         break;
-                     case "SYSMEX XT-2000I":
+                    case "SYSMEX XT-2000I":
                         sys2000iObj = new SYSMEXXT2000i();
                         sys2000iObj.start();
                         break;
@@ -676,7 +680,11 @@ public class MainForm extends javax.swing.JFrame {
                     case "BD FACSCALIBUR":
                     bdobj = new BDFACSCalibur();
                     bdobj.start();
-                    break;                   
+                    break;
+                    case "HUMASTAR 100":
+                    hmobj = new Humastar100();
+                    hmobj.start();
+                    break;
                 }
                  break;
         }
@@ -733,121 +741,124 @@ public class MainForm extends javax.swing.JFrame {
     {
        for(int i=0;i<values.length;i++)
        {
-         String[] data = values[i].split("=");
-         data[0]=data[0].trim();
-         data[1]= data[1].trim();
-         switch(data[0])
-         {
-             case "COMPORT":
-                RS232Settings.COMPORT = data[1];
-                 break;
-             case "BAUD_RATE":
-                 RS232Settings.BAUD = Integer.parseInt(data[1]);                 
-                 break;
-             case "PARITY":
-                 if(data[1].equalsIgnoreCase("none"))
-                    RS232Settings.PARITY = 0;
-                 else if(data[1].equalsIgnoreCase("odd"))
-                    RS232Settings.PARITY = 1;
-                 else
-                     RS232Settings.PARITY = 2;
-                 break;
-             case "STOP_BITS":
-                 RS232Settings.STOPBIT = Integer.parseInt(data[1]);
-                 break;
-             case "DATA_BITS":
-                 RS232Settings.DATABIT_LENGTH = Integer.parseInt(data[1]);
-                 break;
-             case "APPEND_NEWLINE":
-                 RS232Settings.APPEND_NEWLINE = data[1].equalsIgnoreCase("yes");
-                 break;
-             case "APPEND_CARRIAGE_RETURN":
-                 RS232Settings.APPEND_CARRIAGE_RETURN = data[1].equalsIgnoreCase("yes");
-                 break;
-             case "PORT":                
-                 tcpsettings.PORT =Integer.parseInt(data[1]);
-                 break;
-             case "EQUIPMENT_IP":
-                 tcpsettings.EQUIPMENT_IP = data[1];
-                 break;
-             case "BLIS_URL":
-                 blis_URL = data[1]; 
-                 jlblblisURL.setText(blis_URL);
-                 settings.BLIS_URL = data[1];
-                 break;
-             case "BLIS_USERNAME":
-                 blis_username = data[1];    
-         try {
-             settings.BLIS_USERNAME = URLEncoder.encode(data[1],"UTF-8");
-         } catch (UnsupportedEncodingException ex) {
-             Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE, null, ex);
-         }
-                 break;
-             case "BLIS_PASSWORD":
-                 blis_password = data[1];  
-         try {
-             settings.BLIS_PASSWORD = URLEncoder.encode(data[1],"UTF-8");
-         } catch (UnsupportedEncodingException ex) {
-             Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE, null, ex);
-         }
-                 break;
-             case "ENABLE_LOG":
-                 settings.ENABLE_LOG = data[1].equalsIgnoreCase("yes");
-                 break;
-             case "MSACCESS":
+        String[] data = values[i].split("=");
+        data[0]=data[0].trim();
+        data[1]= data[1].trim();
+        switch(data[0])
+        {
+            case "COMPORT":
+               RS232Settings.COMPORT = data[1];
+                break;
+            case "BAUD_RATE":
+                RS232Settings.BAUD = Integer.parseInt(data[1]);                 
+                break;
+            case "PARITY":
+                if(data[1].equalsIgnoreCase("none"))
+                   RS232Settings.PARITY = 0;
+                else if(data[1].equalsIgnoreCase("odd"))
+                   RS232Settings.PARITY = 1;
+                else
+                    RS232Settings.PARITY = 2;
+                break;
+            case "STOP_BITS":
+                RS232Settings.STOPBIT = Integer.parseInt(data[1]);
+                break;
+            case "DATA_BITS":
+                RS232Settings.DATABIT_LENGTH = Integer.parseInt(data[1]);
+                break;
+            case "APPEND_NEWLINE":
+                RS232Settings.APPEND_NEWLINE = data[1].equalsIgnoreCase("yes");
+                break;
+            case "APPEND_CARRIAGE_RETURN":
+                RS232Settings.APPEND_CARRIAGE_RETURN = data[1].equalsIgnoreCase("yes");
+                break;
+            case "PORT":                
+                tcpsettings.PORT =Integer.parseInt(data[1]);
+                break;
+            case "EQUIPMENT_IP":
+                tcpsettings.EQUIPMENT_IP = data[1];
+                break;
+            case "BLIS_URL":
+                blis_URL = data[1]; 
+                jlblblisURL.setText(blis_URL);
+                settings.BLIS_URL = data[1];
+                break;
+            case "BLIS_USERNAME":
+                blis_username = data[1];    
+        try {
+            settings.BLIS_USERNAME = URLEncoder.encode(data[1],"UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+                break;
+            case "BLIS_PASSWORD":
+                blis_password = data[1];  
+        try {
+            settings.BLIS_PASSWORD = URLEncoder.encode(data[1],"UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+                break;
+            case "ENABLE_LOG":
+                settings.ENABLE_LOG = data[1].equalsIgnoreCase("yes");
+                break;
+            case "MSACCESS":
+                MSACCESS.Settings.DATASOURCE = data[1];
+                break;
+            case "DAYS":
+                MSACCESS.Settings.DAYS = Integer.parseInt(data[1]);
+                break;
+            case "DATASOURCE":
                  MSACCESS.Settings.DATASOURCE = data[1];
-                 break;
-             case "DAYS":
-                 MSACCESS.Settings.DAYS = Integer.parseInt(data[1]);
-                 break;
-             case "DATASOURCE":
-                  MSACCESS.Settings.DATASOURCE = data[1];
-                 break;
-             case "WRITE_TO_FILE":
-                 settings.WRITE_TO_FILE = data[1].equalsIgnoreCase("yes");
-                 break;
-             case "POOL_DAY":
-                 settings.POOL_DAY = Integer.parseInt(data[1]);
-                 break;
-             case "POOL_INTERVAL":
-                 settings.POOL_INTERVAL = Integer.parseInt(data[1]);
-                 break;
-             case "ENABLE_AUTO_POOL":
-                 settings.ENABLE_AUTO_POOL = data[1].equalsIgnoreCase("yes");
-                 break;
-             case "MODE":
-                 settings.SERVER_MODE = data[1].equalsIgnoreCase("server");
-                 tcpsettings.SERVER_MODE = data[1].equalsIgnoreCase("server");
-                 break;
-             case "CLIENT_RECONNECT":
-                 tcpsettings.CLIENT_RECONNECT=data[1].equalsIgnoreCase("yes");
-                 break;
-             case "BASE_DIRECTORY":
-                 TEXT.settings.BASE_DIRECTORY = data[1];
-                 break;
-             case "USE_SUB_DIRECTORIES":
-                 TEXT.settings.USE_SUB_DIRECTORIES = data[1].equalsIgnoreCase("yes");
-             case "SUB_DIRECTORY_FORMAT":
-                 TEXT.settings.SUB_DIRECTORY_FORMAT = data[1];
-                 break;
-             case "FILE_NAME_FORMAT":
-                 TEXT.settings.FILE_NAME_FORMAT = data[1];
-                 break;
-             case "FILE_EXTENSION":
-                 TEXT.settings.FILE_EXTENSION = data[1];
-                 break;
-             case "FILE_SEPERATOR":
-                 TEXT.settings.FILE_SEPERATOR = data[1];
-                 TEXT.settings.setChar(data[1]);
-                 break;
-             case "AUTO_SPECIMEN_ID":
-                 settings.AUTO_SPECIMEN_ID = data[1].equalsIgnoreCase("yes");
-                 break;
-                         
-                 
-                
-                      
-         }
+                break;
+            case "WRITE_TO_FILE":
+                settings.WRITE_TO_FILE = data[1].equalsIgnoreCase("yes");
+                break;
+            case "POOL_DAY":
+                settings.POOL_DAY = Integer.parseInt(data[1]);
+                break;
+            case "POOL_INTERVAL":
+                settings.POOL_INTERVAL = Integer.parseInt(data[1]);
+                break;
+            case "ENABLE_AUTO_POOL":
+                settings.ENABLE_AUTO_POOL = data[1].equalsIgnoreCase("yes");
+                break;
+            case "MODE":
+                settings.SERVER_MODE = data[1].equalsIgnoreCase("server");
+                tcpsettings.SERVER_MODE = data[1].equalsIgnoreCase("server");
+                break;
+            case "CLIENT_RECONNECT":
+                tcpsettings.CLIENT_RECONNECT=data[1].equalsIgnoreCase("yes");
+                break;
+            case "BASE_DIRECTORY":
+                TEXT.settings.BASE_DIRECTORY = data[1];
+                break;
+            case "INPUT_DIRECTORY":
+                 TEXT.settings.INPUT_DIRECTORY = data[1];
+            case "OUTPUT_DIRECTORY":
+                 TEXT.settings.OUTPUT_DIRECTORY = data[1];
+            case "USE_SUB_DIRECTORIES":
+                TEXT.settings.USE_SUB_DIRECTORIES = data[1].equalsIgnoreCase("yes");
+            case "SUB_DIRECTORY_FORMAT":
+                TEXT.settings.SUB_DIRECTORY_FORMAT = data[1];
+                break;
+            case "FILE_NAME":
+                TEXT.settings.FILE_NAME = data[1];
+                break;   
+            case "FILE_NAME_FORMAT":
+                TEXT.settings.FILE_NAME_FORMAT = data[1];
+                break;
+            case "FILE_EXTENSION":
+                TEXT.settings.FILE_EXTENSION = data[1];
+                break;
+            case "FILE_SEPERATOR":
+                TEXT.settings.FILE_SEPERATOR = data[1];
+                TEXT.settings.setChar(data[1]);
+                break;
+            case "AUTO_SPECIMEN_ID":
+                settings.AUTO_SPECIMEN_ID = data[1].equalsIgnoreCase("yes");
+                break; 
+        }
        }
         
     }

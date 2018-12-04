@@ -22,6 +22,9 @@ public class settings {
     public static String FILE_EXTENSION;
     public static String FILE_SEPERATOR;
     public static char SEPERATOR_CHAR;
+    public static String FILE_NAME;
+    public static String INPUT_DIRECTORY;
+    public static String OUTPUT_DIRECTORY;
     
     public static void setChar(String Seperator)
     {
@@ -42,7 +45,9 @@ public class settings {
             case "SPACE":
                 SEPERATOR_CHAR =0x20;
                 break;
-                
+            case "VERTICAL-LINE":
+                SEPERATOR_CHAR =0x7c;
+                break;    
         }
     }
     

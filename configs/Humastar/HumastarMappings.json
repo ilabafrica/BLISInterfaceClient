@@ -1,0 +1,83 @@
+{
+   "LFTS":{
+         "measures":[
+        {
+            "blis_name":"Albumin",
+            "blis_measure_id":"37",
+            "equipment_measure_name":"Alb"       
+        },
+        {
+            "blis_name":"Alkaline Phosphate",
+            "blis_measure_id":"38",
+            "equipment_measure_name":"APDEA"       
+        },
+        {
+            "blis_name":"Direct Bilirubin",
+            "blis_measure_id":"39",
+            "equipment_measure_name":"Bilda"       
+        },
+        {
+            "blis_name":"Total Bilirubin",
+            "blis_measure_id":"40",
+            "equipment_measure_name":"Bilta"       
+        },
+        {
+            "blis_name":"ASAT",
+            "blis_measure_id":"41",
+            "equipment_measure_name":"GOT"       
+        },
+        {
+            "blis_name":"SGOT",
+            "blis_measure_id":"42",
+            "equipment_measure_name":"GOT"       
+        },
+        {
+           "blis_name":"ALAT",
+           "blis_measure_id":"43",
+            "equipment_measure_name":"GPT"       
+        },
+        {
+           "blis_name":"Total Proteins",
+           "blis_measure_id":"44",
+            "equipment_measure_name":"Prot"       
+        },
+        {
+           "blis_name":"Creatinine",
+           "blis_measure_id":"45",
+           "equipment_measure_name":"Creaa"        
+        },
+        {
+           "blis_name":"Urea",
+           "blis_measure_id":"46",
+           "equipment_measure_name":"UreaUV"        
+        }
+        ]
+   },
+   "RFTS":{
+        "measures":[
+        {
+           "blis_measure_id":"47",
+           "equipment_measure_name":"GREAA"        
+        },
+        {
+           "blis_measure_id":"48",
+           "equipment_measure_name":"UREAVV"        
+        }
+        
+        ]
+        
+   },
+   "LIPID PROFILE":{
+        "measures":[
+        {
+           "blis_measure_id":"49",
+           "equipment_measure_name":"TG"        
+        },
+        {
+           "blis_measure_id":"50",
+           "equipment_measure_name":"LDL"        
+        }
+        
+        ]
+   }
+}

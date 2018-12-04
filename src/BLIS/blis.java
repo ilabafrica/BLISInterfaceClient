@@ -18,20 +18,31 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Date;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.ArrayList;
 import log.DisplayMessageType;
 import system.settings;
-
+import org.apache.http.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import javax.json.*;
 
 /**
@@ -60,56 +71,75 @@ public class blis {
     }
     public static String getTestData(String specimenTypeFilter, String specimenTestFilter, String aux,int DAYS)
     {
+        HashMap<Integer,String> testsHolder=new HashMap<Integer,String>();
+       return "non-functional";
+    }
+    public static HashMap<String, String> getTestDataHumastar(String specimenTypeFilter, String specimenTestFilter, String aux,int DAYS)
+    {
+        HashMap<String,String> testsHolder=new HashMap<String,String>();
         try {
-            String blisurl = settings.BLIS_URL + "/api/searchtests";
-            URL urlObj = new URL(blisurl);
-
-            String key = "123456";
-            String charset = "UTF-8";
-            String dateFrom = "2017-04-05 00:00:00"; //Today morning
-            String dateTo = "2017-04-05 23:59:00"; // Now
-            String testtype = "CBC"; //Get from params
-
+            HttpClient httpclient = HttpClients.createDefault();
+            String blisurl = settings.BLIS_URL + "/humastar";
+            HttpPost httppost = new HttpPost(blisurl);
+            
+            String key = "123456";           
+            
+            String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            
+            String dateFrom = today + " 00:00:00"; //Today morning
+            String dateTo = today + " 23:59:00"; // Now
+            String[] testtype = {"LFTS","RFTS"}; //Get from params
+            
             // Request parameters and other properties.
-            String query = String.format("dateFrom=%s&dateTo=%s&testtype=%s",
-                URLEncoder.encode(dateFrom, charset),
-                URLEncoder.encode(dateTo, charset),
-                URLEncoder.encode(testtype, charset));
+            for(int i=0;i<testtype.length;i++){
+                List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+                params.add(new BasicNameValuePair("key", key));
+                params.add(new BasicNameValuePair("datefrom", dateFrom));
+                params.add(new BasicNameValuePair("dateto", dateTo));
+                params.add(new BasicNameValuePair("testtype", testtype[i]));
+                httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
-            //Execute and get the response.
-            HttpURLConnection urlConnection = (HttpURLConnection) urlObj.openConnection();
+                //Execute and get the response.
+                HttpResponse response = httpclient.execute(httppost);
 
-            //Check for errors
-            if (urlConnection.getResponseCode() == 404) {
-                log.AddToDisplay.Display("Error 404, check URL...", DisplayMessageType.WARNING);
+                //Check for errors 
+                if (response.getStatusLine().getStatusCode() == 404) {
+                    log.AddToDisplay.Display("Error 404, check URL...", DisplayMessageType.WARNING);
+                }
+                if (response.getStatusLine().getStatusCode() == 500) {
+                    log.AddToDisplay.Display("Server has encountered problems ", DisplayMessageType.WARNING);
+                }
+                if (response.getStatusLine().getStatusCode() == 403) {
+                    log.AddToDisplay.Display("Authentication failed ...", DisplayMessageType.WARNING);
+                }
+                String responseString = new BasicResponseHandler().handleResponse(response);
+
+                //System.out.println(responseString);
+                JSONParser parser = new JSONParser();
+                    try {
+                        JSONArray tests= (JSONArray) parser.parse(responseString);
+                    int counter=0;
+                    for (Object test : tests) {
+                        JSONObject testi=(JSONObject) parser.parse(test.toString());
+                        //System.out.println("we are here"+testi);
+                        //System.out.println("we are here"+testi.get("id").toString());
+                        testsHolder.put(""+testi.get("id"), test.toString());
+                        counter++;
+                        break;
+                    }
+                    } catch (org.json.simple.parser.ParseException ex) {
+                        Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+                    }
             }
-            if (urlConnection.getResponseCode() == 500) {
-                log.AddToDisplay.Display("Server has encountered problems ", DisplayMessageType.WARNING);
-            }
-            if (urlConnection.getResponseCode() == 403) {
-                log.AddToDisplay.Display("Authentication failed ...", DisplayMessageType.WARNING);
-            }
-            int responseCode = urlConnection.getResponseCode();
-
-            if (responseCode != 200)
-                return null;
-
-            StringBuilder response = new StringBuilder();
-                Scanner scanner = new Scanner(urlConnection.getInputStream());
-            while (scanner.hasNext()) {
-                response.append(scanner.nextLine());
-            }
-            scanner.close();
-
-            return response.toString();
-
-        // return responseString;
+            //System.out.println(testsHolder);
+            return testsHolder;
+            
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return "";
+        return null;
     }
     public static String getSampleData(String sampleID, String dateFrom, String dateTo,String specimenTypeFilter,String specimenTestFilter)
     {
@@ -187,58 +217,51 @@ public class blis {
     }
 
     public static String saveResult(String testID, String measureID, String result,int dec)
-    {System.out.println("Hit 1");
-         String respoinsestring="-1";
-        try
-        {
+    {
+        String respoinsestring="-1";
+        try{
+            HttpClient httpclient = HttpClients.createDefault();
             String blisurl = settings.BLIS_URL + "/api/saveresults";
-            URL urlObj = new URL(blisurl);
-
+            
+            HttpPost httppost = new HttpPost(blisurl);
+            
             String key = "123456";
-            String charset = "UTF-8";
             String testId = testID;
-            String measureId = measureID;
+            String measuereId = measureID;
             String testResult = result;
-
+            
             // Request parameters and other properties.
-            String query = String.format("testId=%s&measureId=%s&testResult=%s",
-                 URLEncoder.encode(testId, charset),
-                 URLEncoder.encode(measureId, charset),
-                 URLEncoder.encode(testResult, charset));
-
-            HttpURLConnection urlConnection = (HttpURLConnection) urlObj.openConnection();
-
-            try {
-                //Execute and get the response.
-                int responseCode = urlConnection.getResponseCode();
-
-                if (responseCode != 200)
-                    return null;
-
-                StringBuilder response = new StringBuilder();
-                    Scanner scanner = new Scanner(urlConnection.getInputStream());
-                while (scanner.hasNext()) {
-                    response.append(scanner.nextLine());
-                }
-                scanner.close();
-
-                return response.toString();
+            List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+            params.add(new BasicNameValuePair("key", key));
+            
+            params.add(new BasicNameValuePair("testid", testId));
+            params.add(new BasicNameValuePair("measureId", measuereId));
+            params.add(new BasicNameValuePair("testResult", testResult));
+            httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+            
+            try{
+                //Execute and get the response
+                HttpResponse response = httpclient.execute(httppost);
+                String responseString = new BasicResponseHandler().handleResponse(response);
+                return responseString;
             }
             catch (MalformedURLException ex) {
                 Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
                 log.logger.Logger(ex.getMessage());
                 log.logger.PrintStackTrace(ex);
-            /*} catch (UnsupportedEncodingException ex) {
+            }
+            catch (UnsupportedEncodingException ex) {
                 Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);*/
+            }
+            catch (IOException ex) {
+                Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (IOException ex) {
-                 Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
         }
-         return "";
+        return "";
     }
-    
+ 
     public static String saveResults(String patientID, int measureID, float result,String testTypeID,String instrument)
     {   
         String data="-1";
@@ -307,7 +330,7 @@ public class blis {
 
     public static String saveResults(Message resultmsg)
     {
-        System.out.println("Hit 3");
+        
         String specimenID = resultmsg.Segments.get(2).Fields.get(1).realValue;
         String measureID = resultmsg.Segments.get(3).Fields.get(2).realValue;
         String result = resultmsg.Segments.get(3).Fields.get(4).realValue;
@@ -344,65 +367,46 @@ public class blis {
     }
 
     public static String saveResult(List results) throws UnsupportedEncodingException, IOException {
-            String blisurl = system.settings.BLIS_URL + "/api/saveresults";
-            URL urlObj = new URL(blisurl);
-            HttpURLConnection urlConnection = (HttpURLConnection) urlObj.openConnection();
-
+        HttpClient httpclient = HttpClients.createDefault();
+        String blisurl = system.settings.BLIS_URL + "/api/saveresults";
+        HttpPost httppost = new HttpPost(blisurl);
+        httppost.setEntity(new UrlEncodedFormEntity(results, "UTF-8"));
+       
         try {
-            int responseCode = urlConnection.getResponseCode();
-
-            if (responseCode != 200)
-                    return null;
-
-            StringBuilder response = new StringBuilder();
-                    Scanner scanner = new Scanner(urlConnection.getInputStream());
-            while (scanner.hasNext()) {
-                    response.append(scanner.nextLine());
-            }
-            scanner.close();
-
+            HttpResponse response = httpclient.execute(httppost);
              Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, response);
             return "";
         } catch (IOException ex) {
             Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+                
                 return "";
          //To change body of generated methods, choose Tools | Templates.
     }
     public static String saveResult(String results) throws UnsupportedEncodingException, IOException {
-            String blisurl = system.settings.BLIS_URL + "/api/saveresults";
-            URL urlObj = new URL(blisurl);
-
-            String key = "123456";
-            String charset = "UTF-8";
-
-            // Request parameters and other properties.
-            String query = String.format("results=%s",
-                 URLEncoder.encode(results, charset));
-
-            HttpURLConnection urlConnection = (HttpURLConnection) urlObj.openConnection();
-
+        System.out.println("Ndiyo hii");
+        HttpClient httpclient = HttpClients.createDefault();
+        String blisurl = system.settings.BLIS_URL;
+        //String blisurl = "https://webhook.site/0f6bdb62-b5b7-4f75-bd6f-043fae941755";
+        HttpPost httppost = new HttpPost(blisurl); 
+        List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+        params.add(new BasicNameValuePair("instrument", "humastar_100"));
+        params.add(new BasicNameValuePair("results", results));
+        params.add(new BasicNameValuePair("key", "123456"));
+        //HttpEntity entity = new ByteArrayEntity(results.getBytes("UTF-8"));
+        //httppost.setEntity(entity);
+        //System.out.println("THis is params",params);
+        httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+       
         try {
-                int responseCode = urlConnection.getResponseCode();
-
-                if (responseCode != 200)
-                        return null;
-
-                StringBuilder response = new StringBuilder();
-                        Scanner scanner = new Scanner(urlConnection.getInputStream());
-                while (scanner.hasNext()) {
-                        response.append(scanner.nextLine());
-                }
-                scanner.close();
-
+            HttpResponse response = httpclient.execute(httppost);
              Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, response);
             return "";
         } catch (IOException ex) {
             Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-                return "";
-         //To change body of generated methods, choose Tools | Templates.
+                
+        return "";
+        //To change body of generated methods, choose Tools | Templates.
     }
 }
