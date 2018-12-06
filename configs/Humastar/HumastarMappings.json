@@ -55,29 +55,31 @@
    },
    "RFTS":{
         "measures":[
-        {
+        {  
+           "blis_name":"GREAA",
            "blis_measure_id":"47",
            "equipment_measure_name":"GREAA"        
         },
         {
+           "blis_name":"UREAVV",
            "blis_measure_id":"48",
            "equipment_measure_name":"UREAVV"        
         }
-        
         ]
         
    },
    "LIPID PROFILE":{
         "measures":[
         {
+           "blis_name":"TG",
            "blis_measure_id":"49",
            "equipment_measure_name":"TG"        
         },
         {
+           "blis_name":"LDL",
            "blis_measure_id":"50",
            "equipment_measure_name":"LDL"        
         }
-        
         ]
    }
 }

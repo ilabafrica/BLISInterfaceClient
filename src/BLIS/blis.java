@@ -88,7 +88,7 @@ public class blis {
             
             String dateFrom = today + " 00:00:00"; //Today morning
             String dateTo = today + " 23:59:00"; // Now
-            String[] testtype = {"LFTS","RFTS"}; //Get from params
+            String[] testtype = {"LFTS","RFTS", "LIPID PROFILE"}; //Get from params
             
             // Request parameters and other properties.
             for(int i=0;i<testtype.length;i++){
@@ -98,10 +98,10 @@ public class blis {
                 params.add(new BasicNameValuePair("dateto", dateTo));
                 params.add(new BasicNameValuePair("testtype", testtype[i]));
                 httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-
+                
                 //Execute and get the response.
                 HttpResponse response = httpclient.execute(httppost);
-
+                
                 //Check for errors 
                 if (response.getStatusLine().getStatusCode() == 404) {
                     log.AddToDisplay.Display("Error 404, check URL...", DisplayMessageType.WARNING);
@@ -113,11 +113,11 @@ public class blis {
                     log.AddToDisplay.Display("Authentication failed ...", DisplayMessageType.WARNING);
                 }
                 String responseString = new BasicResponseHandler().handleResponse(response);
-
-                //System.out.println(responseString);
+                
                 JSONParser parser = new JSONParser();
                     try {
                         JSONArray tests= (JSONArray) parser.parse(responseString);
+                        System.out.println("tests "+tests);
                     int counter=0;
                     for (Object test : tests) {
                         JSONObject testi=(JSONObject) parser.parse(test.toString());
@@ -125,13 +125,13 @@ public class blis {
                         //System.out.println("we are here"+testi.get("id").toString());
                         testsHolder.put(""+testi.get("id"), test.toString());
                         counter++;
-                        break;
+                        //break;
                     }
                     } catch (org.json.simple.parser.ParseException ex) {
                         Logger.getLogger(blis.class.getName()).log(Level.SEVERE, null, ex);
                     }
             }
-            //System.out.println(testsHolder);
+            System.out.println("testsHolder: "+testsHolder);
             return testsHolder;
             
         } catch (UnsupportedEncodingException ex) {
@@ -384,7 +384,6 @@ public class blis {
          //To change body of generated methods, choose Tools | Templates.
     }
     public static String saveResult(String results) throws UnsupportedEncodingException, IOException {
-        System.out.println("Ndiyo hii");
         HttpClient httpclient = HttpClients.createDefault();
         String blisurl = system.settings.BLIS_URL;
         //String blisurl = "https://webhook.site/0f6bdb62-b5b7-4f75-bd6f-043fae941755";

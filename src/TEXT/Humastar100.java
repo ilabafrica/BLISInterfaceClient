@@ -171,6 +171,7 @@ public class Humastar100 extends Thread {
             for (int j=0; j < jarr.size(); j++){
                 //Loop through measures
                 JSONObject measure = (JSONObject)jarr.get(j);
+                
                 if(getEquipmentMeasureID((String) measure.get("name"))!=""){
                     String mdetails="";
                     mdetails= "O|"+(j+1)+"|||"+ getEquipmentMeasureID((String) measure.get("name")) +"|False||||||||||Serum|||||||||||||||"; 
@@ -320,17 +321,47 @@ public class Humastar100 extends Thread {
 //        return measureid;
     }
     
-    public static String getEquipmentMeasureID(String blismeasure){     
+    public static String getEquipmentMeasureID(String blismeasure){
         String measureid = "";
         JSONObject mappings = new utilities().loadJsonConfig();
         //Loop through all tests
         
-        JSONObject tests = (JSONObject)mappings.get("LFTS");
-        JSONObject visit =  (JSONObject)mappings.get("visit");
-        JSONArray measures=(JSONArray) tests.get("measures");
+        JSONObject tests_lfts = (JSONObject)mappings.get("LFTS");
+        JSONObject visit_lfts =  (JSONObject)mappings.get("visit");
+        JSONArray measures_lfts=(JSONArray) tests_lfts.get("measures");
 
-        for(int i=0;i<measures.size();i++){
-            JSONObject measure=(JSONObject) measures.get(i);
+        for(int i=0;i<measures_lfts.size();i++){
+            JSONObject measure=(JSONObject) measures_lfts.get(i);
+
+            String equipment_measure_id=(String) measure.get("blis_name");
+
+            if(equipment_measure_id.equalsIgnoreCase(blismeasure)){
+                measureid =(String) measure.get("equipment_measure_name");
+                //break;
+            }
+        }
+        
+        JSONObject tests_rfts = (JSONObject)mappings.get("RFTS");
+        JSONObject visit_rfts =  (JSONObject)mappings.get("visit");
+        JSONArray measures_rfts=(JSONArray) tests_rfts.get("measures");
+
+        for(int i=0;i<measures_rfts.size();i++){
+            JSONObject measure=(JSONObject) measures_rfts.get(i);
+
+            String equipment_measure_id=(String) measure.get("blis_name");
+
+            if(equipment_measure_id.equalsIgnoreCase(blismeasure)){
+                measureid =(String) measure.get("equipment_measure_name");
+                //break;
+            }
+        }
+        
+        JSONObject tests_lipid_profile = (JSONObject)mappings.get("LIPID PROFILE");
+        JSONObject visit_lipid_profile =  (JSONObject)mappings.get("visit");
+        JSONArray measures_lipid_profile=(JSONArray) tests_lipid_profile.get("measures");
+
+        for(int i=0;i<measures_lipid_profile.size();i++){
+            JSONObject measure=(JSONObject) measures_lipid_profile.get(i);
 
             String equipment_measure_id=(String) measure.get("blis_name");
 
